@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=MiLoro
+GenericName=Dictado por voz local
+Comment=Transcripción de voz local sin internet
+Exec=/home/Projects/parla/desktop/miloro-launcher.sh
+Icon=/home/Projects/parla/desktop/src-tauri/icons/icon.png
+Terminal=false
+Categories=Utility;AudioVideo;Office;
+Keywords=dictation;voice;speech;transcription;whisper;
+StartupNotify=true
+StartupWMClass=miloro-desktop
