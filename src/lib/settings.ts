@@ -26,6 +26,10 @@ export interface Settings {
 
   // UX
   showStatusTags: boolean;     // Mostrar banner superior "Escuchando…", "Transcribiendo…"
+
+  // Sistema
+  autoLaunch: boolean;         // Arrancar MiLoro al iniciar sesión del SO
+  autoUpdate: boolean;         // Comprobar updates automáticamente al arrancar
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -43,6 +47,8 @@ const DEFAULT_SETTINGS: Settings = {
   autotype: true,
   typewriter: false,
   showStatusTags: true,
+  autoLaunch: true,
+  autoUpdate: true,
 };
 
 export function loadSettings(): Settings {

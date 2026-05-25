@@ -7,12 +7,69 @@ export interface VerifyResult {
   message: string;
 }
 
-const DEFAULT_BACKEND = "http://localhost:8787";
+const DEFAULT_BACKEND = "https://miloro.app/api";
 
 function backendUrl(): string {
-  // Allow override via localStorage for testing against deployed Worker later.
+  // Override vía localStorage si el Worker está en otro host (ej. workers.dev mientras se configura ruta).
   const override = localStorage.getItem("miloro.backend_url");
   return (override && override.trim()) || DEFAULT_BACKEND;
+}
+
+// ============================================================================
+// Free anónimo (sin licencia + sin backend): tracking client-side de quota.
+// Persiste en localStorage, reset diario a medianoche UTC.
+// ============================================================================
+
+const ANON_USAGE_KEY = "miloro.anon_usage";
+
+interface AnonUsage {
+  date_utc: string; // YYYY-MM-DD UTC
+  seconds_used: number;
+}
+
+function todayUtc(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Lee el contador de segundos usados HOY (UTC). Si el día cambió, resetea a 0. */
+export function getAnonUsageSeconds(): number {
+  try {
+    const raw = localStorage.getItem(ANON_USAGE_KEY);
+    if (!raw) return 0;
+    const parsed = JSON.parse(raw) as AnonUsage;
+    if (parsed.date_utc !== todayUtc()) return 0;
+    return parsed.seconds_used || 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Suma segundos al contador anónimo. Devuelve el nuevo total del día. */
+export function addAnonUsageSeconds(seconds: number): number {
+  const current = getAnonUsageSeconds();
+  const newTotal = current + Math.max(0, Math.round(seconds));
+  const next: AnonUsage = { date_utc: todayUtc(), seconds_used: newTotal };
+  try {
+    localStorage.setItem(ANON_USAGE_KEY, JSON.stringify(next));
+  } catch {
+    // localStorage lleno o bloqueado: ignorar (no es bloqueante)
+  }
+  return newTotal;
+}
+
+/** Sintetiza un LicenseInfo "anónimo Free" para que la UI pueda mostrar plan + quota sin backend. */
+export function getAnonFreeInfo(): LicenseInfo {
+  return {
+    email: "(sin cuenta)",
+    plan: "free",
+    devices_used: 1,
+    devices_max: 1,
+    devices: [],
+    license_status: "anon",
+    expires_at: null,
+    last_payment_at: null,
+    seconds_used_today: getAnonUsageSeconds(),
+  };
 }
 
 export async function verifyLicense(key: string): Promise<VerifyResult> {

@@ -2,6 +2,7 @@
   import { invoke } from "@tauri-apps/api/core";
   import { listen, type UnlistenFn } from "@tauri-apps/api/event";
   import { check as checkUpdate } from "@tauri-apps/plugin-updater";
+  import { enable as enableAutostart, disable as disableAutostart, isEnabled as isAutostartEnabled } from "@tauri-apps/plugin-autostart";
   import { onMount, onDestroy } from "svelte";
   import {
     loadStoredKey,
@@ -11,6 +12,8 @@
     deactivateThisDevice,
     reportUsage,
     FREE_QUOTA_SECONDS_PER_DAY,
+    getAnonFreeInfo,
+    addAnonUsageSeconds,
     type LicenseStatus,
     type LicenseInfo,
   } from "./lib/license";
@@ -19,7 +22,16 @@
 
   let licenseKey = $state(loadStoredKey());
   let licenseStatus = $state<LicenseStatus>("unknown");
-  let licenseInfo = $state<LicenseInfo | null>(null);
+  // Default = Free anónimo (sin backend). Si el usuario tiene key y backend responde,
+  // se reemplaza con licenseInfo real en onMount. Si la verify falla → seguimos anon.
+  let licenseInfo = $state<LicenseInfo>(getAnonFreeInfo());
+  // True solo cuando hablamos con backend (key valid + dashboard ok). Anon = false.
+  let isOnlineLicense = $state(false);
+  // Estado del check de updates (para UI manual y badge).
+  let updateState = $state<"idle" | "checking" | "available" | "downloading" | "uptodate" | "error">("idle");
+  let updateLastMsg = $state("");
+  // Mostrar/ocultar el input de licencia (oculto por defecto — el usuario Free no lo necesita).
+  let showLicenseInput = $state(false);
   let showDevicesPanel = $state(false);
 
   let settings = $state<Settings>(loadSettings());
@@ -181,14 +193,19 @@
       lastTranscription = "(sin audio detectado)";
     }
 
-    // Reportar usage al backend (no bloqueante — si falla, app sigue).
-    // Solo cuando hay transcripción real Y hay duración medida.
-    if (clean && recordingDurationSec > 0 && licenseKey) {
-      reportUsage(licenseKey, recordingDurationSec).then((newTotal) => {
-        if (newTotal !== null && licenseInfo) {
-          licenseInfo = { ...licenseInfo, seconds_used_today: newTotal };
-        }
-      });
+    // Reportar usage — al backend si online license, en local si anon.
+    if (clean && recordingDurationSec > 0) {
+      if (isOnlineLicense && licenseKey) {
+        reportUsage(licenseKey, recordingDurationSec).then((newTotal) => {
+          if (newTotal !== null) {
+            licenseInfo = { ...licenseInfo, seconds_used_today: newTotal };
+          }
+        });
+      } else {
+        // Anon Free: tracking local en localStorage (reset diario UTC).
+        const newTotal = addAnonUsageSeconds(recordingDurationSec);
+        licenseInfo = { ...licenseInfo, seconds_used_today: newTotal };
+      }
     }
 
     if (!clean) return;
@@ -340,35 +357,66 @@
     try {
       await invoke("update_ptt_key", { keyName: settings.pttKey });
     } catch {}
-    // Si hay licencia guardada, intentar verify silencioso + cargar info Mi cuenta
+    // Si hay licencia guardada, intentar verify silencioso + cargar info Mi cuenta.
+    // Si falla (backend offline, key inválida) → seguimos en modo anon Free.
     if (licenseKey) {
-      const r = await verifyLicense(licenseKey);
-      licenseStatus = r.status;
-      if (r.status === "valid") {
-        licenseInfo = await fetchDashboard(licenseKey);
+      try {
+        const r = await verifyLicense(licenseKey);
+        licenseStatus = r.status;
+        if (r.status === "valid") {
+          const info = await fetchDashboard(licenseKey);
+          if (info) {
+            licenseInfo = info;
+            isOnlineLicense = true;
+          }
+        }
+      } catch {
+        // Backend offline → quedarse en anon Free, sin error visible.
       }
     }
-    // Check de updates en background — non-blocking. Si hay nueva versión, toast.
-    setTimeout(() => { void checkForUpdates(); }, 3000); // espera 3s tras arranque para no bloquear UX inicial
+    // Auto-update check: solo si el user lo tiene activo (default ON). Se hace tras 3s para no bloquear UX inicial.
+    if (settings.autoUpdate) {
+      setTimeout(() => { void checkForUpdates(false); }, 3000);
+    }
+    // Sincroniza estado autostart con la realidad del SO (por si el user lo cambió fuera).
+    try {
+      const realAutostart = await isAutostartEnabled();
+      if (realAutostart !== settings.autoLaunch) {
+        // Si está activado el setting pero no en SO, enable; si está OFF en setting pero ON en SO, disable.
+        if (settings.autoLaunch) await enableAutostart();
+        else await disableAutostart();
+      }
+    } catch {}
   });
 
-  /** Comprueba miloro.app/updater.json. Si hay versión nueva, descarga + instala con notificación al usuario. */
-  async function checkForUpdates() {
+  /** Comprueba miloro.app/updater.json. `userInitiated=true` muestra toasts incluso si todo OK. */
+  async function checkForUpdates(userInitiated: boolean) {
+    updateState = "checking";
+    updateLastMsg = "Buscando…";
     try {
       const update = await checkUpdate();
-      if (!update) return; // ya en última
-      showToast(`🆕 Nueva versión ${update.version} disponible — descargando…`, true);
-      // Descarga + instalación. Tauri se encarga del relaunch.
+      if (!update) {
+        updateState = "uptodate";
+        updateLastMsg = "Estás en la última versión.";
+        if (userInitiated) showToast("✅ MiLoro está actualizado.", true);
+        return;
+      }
+      updateState = "available";
+      updateLastMsg = `Versión ${update.version} disponible.`;
+      showToast(`🆕 Nueva versión ${update.version} — descargando…`, true);
+      updateState = "downloading";
       await update.downloadAndInstall((progress) => {
-        // progress events: started / downloaded / finished
         if (progress.event === "Started") {
-          showToast(`Descargando MiLoro ${update.version}…`, true);
+          updateLastMsg = `Descargando ${update.version}…`;
         }
       });
-      showToast("✅ Actualización instalada. Reinicia MiLoro para aplicarla.", true);
+      updateLastMsg = `Actualización ${update.version} instalada. Reinicia MiLoro para aplicarla.`;
+      showToast("✅ Actualización instalada. Reinicia para aplicarla.", true);
     } catch (e) {
-      // Falla silente — la app sigue corriendo con la versión actual.
-      // No reportamos al usuario para no asustar (puede ser sin internet, manifest no disponible, etc).
+      updateState = "error";
+      const msg = e instanceof Error ? e.message : String(e);
+      updateLastMsg = `Error: ${msg}`;
+      if (userInitiated) showToast(`❌ No se pudo comprobar updates: ${msg}`, false);
       console.warn("[updater] check falló:", e);
     }
   }
@@ -388,6 +436,19 @@
 
   // Auto-save: persiste cualquier cambio en settings en localStorage. No requiere botón.
   $effect(() => { saveSettings(settings); });
+
+  // Sync autostart con la realidad del SO cuando el user toggleaa el checkbox.
+  // Falla silente si el plugin no está disponible (ej. dev sin tauri runtime).
+  $effect(() => {
+    const want = settings.autoLaunch;
+    (async () => {
+      try {
+        const enabled = await isAutostartEnabled();
+        if (want && !enabled) await enableAutostart();
+        if (!want && enabled) await disableAutostart();
+      } catch {}
+    })();
+  });
 
   const modelOptions = [
     { value: "tiny",     label: "Tiny",      hint: "Más rápido · 39 MB · descarga al 1er uso" },
@@ -434,70 +495,47 @@
       <div class="tagline">Tu loro de dictado · 100% local · privado</div>
     </div>
 
-    {#if licenseInfo}
-      <div class="account-bar">
+    <div class="account-bar">
+      <span class="plan-badge plan-{licenseInfo.plan}">{licenseInfo.plan.toUpperCase()}</span>
+      {#if isOnlineLicense}
+        <span>·</span>
         <span>✉ {licenseInfo.email}</span>
         <span>·</span>
-        <span class="plan-badge plan-{licenseInfo.plan}">{licenseInfo.plan.toUpperCase()}</span>
-        <span>·</span>
         <button class="link-btn" onclick={toggleDevicesPanel}>📱 {licenseInfo.devices_used}/{licenseInfo.devices_max} devices</button>
-        {#if licenseInfo.plan === "free"}
-          <span>·</span>
-          <span class="quota-meter" class:exhausted={isFreeQuotaExhausted()}>
-            📊 {formatMinutes(licenseInfo.seconds_used_today)} / 30 min hoy
-          </span>
-        {/if}
+      {/if}
+      {#if licenseInfo.plan === "free"}
+        <span>·</span>
+        <span class="quota-meter" class:exhausted={isFreeQuotaExhausted()}>
+          📊 {formatMinutes(licenseInfo.seconds_used_today)} / 30 min hoy
+        </span>
+        <span>·</span>
+        <a class="upgrade-cta" href="https://miloro.app/#pricing" target="_blank" rel="noopener">⬆ Upgrade a Pro</a>
+      {:else}
         <span>·</span>
         <span>⏳ {formatExpires(licenseInfo.expires_at)}</span>
+      {/if}
+      {#if isOnlineLicense}
         <button class="link-btn" onclick={changeLicense}>Cambiar licencia</button>
+      {:else}
+        <button class="link-btn" onclick={() => (showLicenseInput = !showLicenseInput)}>
+          {showLicenseInput ? "Cerrar" : "Tengo licencia"}
+        </button>
+      {/if}
+    </div>
+
+    {#if licenseInfo.plan === "free" && isFreeQuotaExhausted()}
+      <div class="quota-banner">
+        <strong>🛑 Has alcanzado el límite Free de 30 min/día.</strong>
+        MiLoro vuelve a funcionar mañana a las 00:00 UTC, o
+        <a href="https://miloro.app/#pricing" target="_blank" rel="noopener">upgrade a Pro</a>
+        para audio ilimitado por €9/mes.
       </div>
-
-      {#if licenseInfo.plan === "free" && isFreeQuotaExhausted()}
-        <div class="quota-banner">
-          <strong>🛑 Has alcanzado el límite Free de 30 min/día.</strong>
-          MiLoro vuelve a funcionar mañana a las 00:00 UTC, o
-          <a href="https://miloro.app/#pricing" target="_blank" rel="noopener">upgrade a Pro</a>
-          para audio ilimitado por €9/mes.
-        </div>
-      {/if}
-
-      {#if showDevicesPanel}
-        <div class="devices-panel">
-          <div class="devices-panel-header">
-            <strong>Mis devices activos</strong>
-            <button class="link-btn" onclick={() => (showDevicesPanel = false)}>Cerrar ✕</button>
-          </div>
-          {#if licenseInfo.devices.length === 0}
-            <p class="devices-empty">No hay devices registrados.</p>
-          {:else}
-            <ul class="devices-list">
-              {#each licenseInfo.devices as dev}
-                <li class="device-row">
-                  <div class="device-info">
-                    <span class="device-name">{dev.hostname || "Device sin nombre"}</span>
-                    <span class="device-meta">{dev.os || "?"} · activo {formatLastSeen(dev.last_seen)}</span>
-                  </div>
-                </li>
-              {/each}
-            </ul>
-          {/if}
-          <div class="devices-actions">
-            <button class="btn-danger-small" onclick={deactivateCurrentDevice}>
-              🗑 Desactivar este device
-            </button>
-          </div>
-          <p class="devices-note">
-            💡 Para desactivar devices de otros equipos (ej. portátil viejo): abre MiLoro desde esa máquina y desactívalo desde ahí, o contacta soporte.
-            <br/>(Post-launch añadiremos gestión cruzada — backend pendiente.)
-          </p>
-        </div>
-      {/if}
     {/if}
 
-    {#if licenseStatus !== "valid"}
+    {#if showLicenseInput && !isOnlineLicense}
       <section class="license-block">
         <div class="section-label">🔑 Activar licencia</div>
-        <p class="hint">Pega tu UUID de licencia. Si no tienes una, escribe a <code>alpha@miloro.app</code>.</p>
+        <p class="hint">Pega tu UUID de licencia (te lo enviamos por email tras suscribirte).</p>
         <input
           bind:value={licenseKey}
           placeholder="00000000-0000-0000-0000-000000000000"
@@ -506,7 +544,39 @@
         <button class="btn btn-primary" onclick={verify} disabled={!licenseKey}>Verificar</button>
         {#if statusMsg}<p class="status-line">{statusMsg}</p>{/if}
       </section>
-    {:else}
+    {/if}
+
+    {#if isOnlineLicense && showDevicesPanel}
+      <div class="devices-panel">
+        <div class="devices-panel-header">
+          <strong>Mis devices activos</strong>
+          <button class="link-btn" onclick={() => (showDevicesPanel = false)}>Cerrar ✕</button>
+        </div>
+        {#if licenseInfo.devices.length === 0}
+          <p class="devices-empty">No hay devices registrados.</p>
+        {:else}
+          <ul class="devices-list">
+            {#each licenseInfo.devices as dev}
+              <li class="device-row">
+                <div class="device-info">
+                  <span class="device-name">{dev.hostname || "Device sin nombre"}</span>
+                  <span class="device-meta">{dev.os || "?"} · activo {formatLastSeen(dev.last_seen)}</span>
+                </div>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+        <div class="devices-actions">
+          <button class="btn-danger-small" onclick={deactivateCurrentDevice}>
+            🗑 Desactivar este device
+          </button>
+        </div>
+        <p class="devices-note">
+          💡 Para desactivar devices de otros equipos: abre MiLoro desde esa máquina y desactívalo desde ahí.
+        </p>
+      </div>
+    {/if}
+
       {#if settings.showStatusTags}
         <div
           class="status-bar"
@@ -662,6 +732,37 @@
             </div>
           </div>
 
+          <div class="section">
+            <div class="section-label">⚙️ Sistema</div>
+
+            <div class="field field-toggle">
+              <label class="toggle-row">
+                <input type="checkbox" bind:checked={settings.autoLaunch} />
+                <span class="toggle-label">Arrancar MiLoro al iniciar sesión del SO</span>
+              </label>
+              <p class="hint">Para no tener que abrir la app cada vez que arrancas el ordenador.</p>
+            </div>
+
+            <div class="field field-toggle">
+              <label class="toggle-row">
+                <input type="checkbox" bind:checked={settings.autoUpdate} />
+                <span class="toggle-label">Comprobar actualizaciones automáticamente</span>
+              </label>
+              <p class="hint">Al arrancar MiLoro comprueba miloro.app. Si hay versión nueva, descarga + instala con tu confirmación.</p>
+            </div>
+
+            <div class="field">
+              <button class="mini-btn" onclick={() => checkForUpdates(true)} disabled={updateState === "checking" || updateState === "downloading"}>
+                {#if updateState === "checking"}⏳ Buscando…
+                {:else if updateState === "downloading"}⬇ Descargando…
+                {:else}🔄 Buscar actualizaciones ahora{/if}
+              </button>
+              {#if updateLastMsg}
+                <p class="hint update-status" class:err={updateState === "error"}>{updateLastMsg}</p>
+              {/if}
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -695,7 +796,6 @@
       {#if toastVisible}
         <div class="toast" class:err={!toastOk}>{toastText}</div>
       {/if}
-    {/if}
   </div>
 
 </main>
@@ -1212,4 +1312,52 @@
     opacity: 0.8;
     font-style: italic;
   }
+
+  /* Upgrade CTA destacado en account bar — siempre visible para plan Free */
+  .upgrade-cta {
+    background: #16A34A;
+    color: white !important;
+    padding: 0.18rem 0.65rem;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+  .upgrade-cta:hover { background: #15803D; color: white !important; }
+
+  /* Settings: toggles tipo checkbox + label */
+  .field-toggle {
+    margin-bottom: 0.6rem;
+  }
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #16A34A;
+    cursor: pointer;
+  }
+  .toggle-label {
+    font-size: 0.92rem;
+    color: #1F2937;
+    font-weight: 500;
+  }
+  .field-toggle .hint {
+    margin: 0.3rem 0 0 1.6rem;
+    font-size: 0.78rem;
+    color: #78350F;
+    font-style: normal;
+  }
+  .update-status {
+    margin-top: 0.4rem;
+    font-size: 0.82rem;
+    color: #78350F;
+  }
+  .update-status.err { color: #991B1B; }
 </style>

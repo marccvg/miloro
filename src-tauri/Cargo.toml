@@ -18,6 +18,8 @@ tauri = { version = "2.1", features = ["tray-icon"] }
 tauri-plugin-clipboard-manager = "2.0"
 # Auto-updater: app comprueba miloro.app/updater.json al arrancar, descarga firma + binario si hay versión nueva.
 tauri-plugin-updater = "2.0"
+# Autostart: arrancar MiLoro al iniciar sesión SO (Linux: ~/.config/autostart/; Win: registro; Mac: LaunchAgent).
+tauri-plugin-autostart = "2.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # PTT global linux: lectura /dev/input/event* (requiere user en grupo `input`)
