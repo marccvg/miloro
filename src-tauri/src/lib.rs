@@ -415,34 +415,42 @@ async fn type_text_typewriter(
     }
 
     #[cfg(target_os = "linux")]
-    for (i, ch) in chars.iter().enumerate() {
-        let start = std::time::Instant::now();
-        let s = ch.to_string();
-        write_clipboard_no_portal(&s, &app)
-            .map_err(|e| format!("clipboard char {i}: {e}"))?;
-        // status() en vez de output() para no asignar buffer stdout/stderr (~1-2ms menos overhead).
-        let res = Command::new("ydotool")
-            .args(["key", "29:1", "42:1", "47:1", "47:0", "42:0", "29:0"])
-            .status();
-        if !matches!(&res, Ok(s) if s.success()) {
-            return Err(format!("typewriter char {i} ('{ch}'): ydotool falló"));
+    {
+        for (i, ch) in chars.iter().enumerate() {
+            let start = std::time::Instant::now();
+            let s = ch.to_string();
+            write_clipboard_no_portal(&s, &app)
+                .map_err(|e| format!("clipboard char {i}: {e}"))?;
+            // status() en vez de output() para no asignar buffer stdout/stderr (~1-2ms menos overhead).
+            let res = Command::new("ydotool")
+                .args(["key", "29:1", "42:1", "47:1", "47:0", "42:0", "29:0"])
+                .status();
+            if !matches!(&res, Ok(s) if s.success()) {
+                return Err(format!("typewriter char {i} ('{ch}'): ydotool falló"));
+            }
+            // Dormir solo lo que falte para completar el budget — sincroniza con UI.
+            let elapsed = start.elapsed();
+            if elapsed < target {
+                std::thread::sleep(target - elapsed);
+            }
         }
-        // Dormir solo lo que falte para completar el budget — sincroniza con UI.
-        let elapsed = start.elapsed();
-        if elapsed < target {
-            std::thread::sleep(target - elapsed);
+        // Clipboard final según preferencia del usuario, sin portal:
+        //   keep=true (copyClipboard ON): texto completo (Ctrl+V manual pega todo).
+        //   keep=false (copyClipboard OFF): clipboard limpio.
+        std::thread::sleep(std::time::Duration::from_millis(30));
+        if keep {
+            let _ = write_clipboard_no_portal(&text, &app);
+        } else {
+            clear_clipboard_no_portal(&app);
         }
+        return Ok("typewriter:char_clipboard".into());
     }
-    // Clipboard final según preferencia del usuario, sin portal:
-    //   keep=true (copyClipboard ON): texto completo (Ctrl+V manual pega todo).
-    //   keep=false (copyClipboard OFF): clipboard limpio.
-    std::thread::sleep(std::time::Duration::from_millis(30));
-    if keep {
-        let _ = write_clipboard_no_portal(&text, &app);
-    } else {
-        clear_clipboard_no_portal(&app);
+
+    #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+    {
+        let _ = (keep, target, chars, app, text);
+        Err("typewriter no implementado en esta plataforma".into())
     }
-    Ok("typewriter:char_clipboard".into())
 }
 
 // ============================================================================
