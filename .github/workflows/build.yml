@@ -20,11 +20,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform:
-          - ubuntu-22.04   # Linux: AppImage + .deb + .rpm
-          - windows-latest # Win: .msi + .exe NSIS
-          - macos-14       # macOS: .dmg + .app.tar.gz (Apple Silicon)
-          - macos-13       # macOS: .dmg + .app.tar.gz (Intel x86_64)
+        include:
+          - platform: ubuntu-22.04   # Linux: AppImage + .deb + .rpm
+            tauri_args: ""
+            rust_targets: ""
+          - platform: windows-latest # Win: .msi + .exe NSIS
+            tauri_args: ""
+            rust_targets: ""
+          # macOS universal binary (Intel + Apple Silicon en un solo .dmg).
+          # macos-13 (Intel runner) deprecated por GitHub — runners escasos, queue eterna.
+          # macos-14 nativo Apple Silicon, cross-compile a x86_64 con universal target.
+          - platform: macos-14
+            tauri_args: "--target universal-apple-darwin"
+            rust_targets: "aarch64-apple-darwin,x86_64-apple-darwin"
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -35,7 +43,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-13' && 'x86_64-apple-darwin' || matrix.platform == 'macos-14' && 'aarch64-apple-darwin' || '' }}
+          targets: ${{ matrix.rust_targets }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -91,11 +99,12 @@ jobs:
       - name: Build Tauri
         working-directory: desktop
         env:
-          # Tauri updater signing — secrets configurados en GitHub repo settings:
-          # Settings → Secrets and variables → Actions → "New repository secret"
+          # Tauri updater signing — secrets configurados en GitHub repo settings.
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: npm run tauri:build
+        # macOS pasa --target universal-apple-darwin para 1 binario Intel+ARM.
+        # Linux/Win sin args, build nativo.
+        run: npx tauri build ${{ matrix.tauri_args }}
 
       # --- Upload artefactos por OS para descarga en GitHub release ---
       - name: Upload Linux artifacts
@@ -122,15 +131,16 @@ jobs:
             desktop/src-tauri/target/release/bundle/nsis/*.exe.sig
           if-no-files-found: warn
 
+      # macOS universal: path bundle vive bajo target/universal-apple-darwin/, no target/
       - name: Upload macOS artifacts
         if: startsWith(matrix.platform, 'macos')
         uses: actions/upload-artifact@v4
         with:
-          name: miloro-${{ matrix.platform == 'macos-14' && 'macos-aarch64' || 'macos-x86_64' }}
+          name: miloro-macos-universal
           path: |
-            desktop/src-tauri/target/release/bundle/dmg/*.dmg
-            desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz
-            desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz.sig
+            desktop/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app.tar.gz
+            desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
           if-no-files-found: warn
 
   # --- Job final: cuando los 4 builds OK, crear GitHub Release con todos los artefactos ---

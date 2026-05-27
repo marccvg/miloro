@@ -85,10 +85,32 @@ WIN_NSIS_SIG=$(find_asset "MiLoro_${VERSION}_x64-setup.exe.sig")
 [ -z "$WIN_NSIS" ] && WIN_NSIS=$(find_asset "MiLoro_${VERSION}_x64_en-US.msi")
 [ -z "$WIN_NSIS_SIG" ] && WIN_NSIS_SIG=$(find_asset "MiLoro_${VERSION}_x64_en-US.msi.sig")
 
+# macOS: workflow construye universal binary (Intel + ARM en un solo .app.tar.gz).
+# Tauri output con --target universal-apple-darwin típicamente: MiLoro.app.tar.gz (sin arch sufijo)
+# o MiLoro_X.Y.Z_universal.app.tar.gz. Buscamos varios patrones.
+MAC_UNIVERSAL_TARGZ=$(find_asset "MiLoro.app.tar.gz")
+[ -z "$MAC_UNIVERSAL_TARGZ" ] && MAC_UNIVERSAL_TARGZ=$(find_asset "MiLoro_${VERSION}_universal.app.tar.gz")
+[ -z "$MAC_UNIVERSAL_TARGZ" ] && MAC_UNIVERSAL_TARGZ=$(find_asset "MiLoro_universal.app.tar.gz")
+MAC_UNIVERSAL_SIG="${MAC_UNIVERSAL_TARGZ}.sig"
+[ ! -f "$MAC_UNIVERSAL_SIG" ] && MAC_UNIVERSAL_SIG=""
+
+# Backward compat: si hay binarios arch-específicos (legacy macos-13/14 separados), respetarlos
 MAC_X86_TARGZ=$(find_asset "MiLoro_x86_64.app.tar.gz")
 MAC_X86_SIG=$(find_asset "MiLoro_x86_64.app.tar.gz.sig")
 MAC_ARM_TARGZ=$(find_asset "MiLoro_aarch64.app.tar.gz")
 MAC_ARM_SIG=$(find_asset "MiLoro_aarch64.app.tar.gz.sig")
+
+# Si tenemos universal pero NO arch específicos, asignar universal a AMBAS keys
+# (Tauri updater busca darwin-x86_64 y darwin-aarch64 por separado; podemos servir
+# el mismo binary universal para los 2 clients).
+if [ -n "$MAC_UNIVERSAL_TARGZ" ] && [ -z "$MAC_X86_TARGZ" ]; then
+  MAC_X86_TARGZ="$MAC_UNIVERSAL_TARGZ"
+  MAC_X86_SIG="$MAC_UNIVERSAL_SIG"
+fi
+if [ -n "$MAC_UNIVERSAL_TARGZ" ] && [ -z "$MAC_ARM_TARGZ" ]; then
+  MAC_ARM_TARGZ="$MAC_UNIVERSAL_TARGZ"
+  MAC_ARM_SIG="$MAC_UNIVERSAL_SIG"
+fi
 
 echo ""
 echo "Assets detectados:"
