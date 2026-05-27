@@ -152,13 +152,33 @@ async fn start_recording_continuous(rec_state: State<'_, RecState>) -> Result<St
     let device = audio_device();
 
     // Sin -d → arecord graba hasta señal. Damos -d 120 como safety cap.
-    let child = Command::new("arecord")
+    let mut child = Command::new("arecord")
         .args(["-q", "-D", &device, "-d", "120",
                "-f", "S16_LE", "-r", "16000", "-c", "1", &out_str])
         .stdout(Stdio::null())
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|e| format!("spawn arecord: {e}"))?;
+
+    // Espera corta y verifica que arecord no murió inmediatamente (device ocupado, etc.).
+    // Sin este check, devolveríamos OK y solo veríamos el fallo en stop como "no produjo fichero".
+    std::thread::sleep(std::time::Duration::from_millis(150));
+    if let Ok(Some(status)) = child.try_wait() {
+        let mut stderr_buf = String::new();
+        if let Some(mut s) = child.stderr.take() {
+            use std::io::Read;
+            let _ = s.read_to_string(&mut stderr_buf);
+        }
+        let stderr_low = stderr_buf.to_lowercase();
+        if stderr_low.contains("ocupado") || stderr_low.contains("busy") {
+            return Err(format!(
+                "arecord: dispositivo {device} OCUPADO. \
+                 Ejecuta `systemctl --user stop oido-daemon oido-ptt` (u otro proceso que use el mic)."
+            ));
+        }
+        return Err(format!("arecord murió al arrancar (exit={:?}, device={device}): {}",
+                           status.code(), stderr_buf.trim()));
+    }
 
     *rec_state.lock() = Some(child);
     Ok(out_str)
@@ -291,14 +311,14 @@ async fn transcribe(
 /// Args:
 ///   audio_path: ruta al WAV mono 16kHz (output de start_recording)
 ///   model:      'tiny' | 'base' | 'small' | 'medium' | 'large-v3' (default 'small')
-///   language:   ISO-639-1 ('es', 'en', 'auto'...) — actualmente NO usado (FullParams default es 'auto detect')
+///   language:   ISO-639-1 ('es', 'en', ...) o "" / "auto" para auto-detect.
 ///
 /// Returns: texto transcrito con segmentos concatenados (un solo string, sin \n).
 #[command]
 async fn transcribe_local(
     audio_path: String,
     model: Option<String>,
-    _language: Option<String>,
+    language: Option<String>,
 ) -> Result<String, String> {
     if !std::path::Path::new(&audio_path).exists() {
         return Err(format!("audio no existe: {audio_path}"));
@@ -309,10 +329,11 @@ async fn transcribe_local(
     // Ejecutamos en blocking thread pool de Tokio para no congelar event loop Tauri.
     let audio_path_clone = audio_path.clone();
     let model_size_owned = model_size.to_string();
+    let language_owned = language.clone();
     let result = tokio::task::spawn_blocking(move || {
         let model_path = model_manager::ensure_model(&model_size_owned)?;
         let model_path_str = model_path.to_string_lossy().to_string();
-        whisper::transcribe_file(&model_path_str, &audio_path_clone)
+        whisper::transcribe_file(&model_path_str, &audio_path_clone, language_owned.as_deref())
     })
     .await
     .map_err(|e| format!("tokio join error: {e}"))?;

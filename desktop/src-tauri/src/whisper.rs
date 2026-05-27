@@ -12,7 +12,11 @@ const TARGET_SAMPLE_RATE: u32 = 16_000;
 /// Both paths must exist on disk. Returns the concatenated text of all segments,
 /// trimmed. Errors are returned as `String` so callers (Tauri commands) can
 /// serialise them directly.
-pub fn transcribe_file(model_path: &str, audio_path: &str) -> Result<String, String> {
+pub fn transcribe_file(
+    model_path: &str,
+    audio_path: &str,
+    language: Option<&str>,
+) -> Result<String, String> {
     if !Path::new(model_path).exists() {
         return Err(format!("model file not found: {model_path}"));
     }
@@ -36,6 +40,18 @@ pub fn transcribe_file(model_path: &str, audio_path: &str) -> Result<String, Str
     params.set_print_timestamps(false);
     params.set_print_special(false);
     params.set_single_segment(false);
+    // Fix v0.0.11: forzar idioma cuando el usuario lo ha configurado. Sin esto, whisper.cpp
+    // auto-detecta y en clips cortos (<5s) en español falla ~30% → output en inglés.
+    // "" o "auto" → mantener auto-detect.
+    if let Some(lang) = language {
+        let l = lang.trim();
+        if !l.is_empty() && l != "auto" {
+            params.set_language(Some(l));
+            // Asegurar transcribe (no translate-to-english). El default ya es transcribe,
+            // pero lo forzamos defensivamente por si cambia upstream.
+            params.set_translate(false);
+        }
+    }
 
     state
         .full(params, &samples)
