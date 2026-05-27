@@ -1,0 +1,38 @@
+{
+  "nav.features": "Funktionen",
+  "nav.pricing": "Preise",
+  "nav.faq": "FAQ",
+  "nav.download": "Herunterladen",
+
+  "hero.title": "Sprich mit der KI. <em>MiLoro</em> schreibt für dich.",
+  "hero.sub": "Der Engpass beim Nutzen von ChatGPT, Claude oder einer beliebigen KI ist das Tippen. MiLoro beseitigt ihn: Taste halten, normal sprechen, loslassen. Der Text erscheint dort, wo dein Cursor steht — KI-Chat, E-Mail, Code, überall. <strong>100% lokal</strong>: Deine Stimme verlässt nie dein Gerät.",
+  "hero.cta_primary": "Kostenlos testen",
+  "hero.cta_secondary": "Preise ansehen",
+  "hero.meta": "🇪🇸 Spanisch · 🇦🇩 Katalanisch · 🇬🇧 Englisch · 🇮🇹 Italienisch · 🇫🇷 Französisch · 🇩🇪 Deutsch",
+  "hero.os": "🐧 Linux · 🪟 Windows · 🍎 macOS",
+
+  "features.title": "Warum MiLoro?",
+  "features.local.title": "100% lokal",
+  "features.offline.title": "Kein Internet nötig",
+  "features.crossplat.title": "Plattformübergreifend",
+  "features.multilang.title": "Mehrsprachig nativ",
+  "features.multilang.text": "Whisper erkennt 99 Sprachen ohne zusätzliche Konfiguration — Spanisch, Englisch, Französisch, Italienisch, Deutsch, Portugiesisch und viele mehr.",
+  "features.fair.title": "Faires Anti-Piraterie-Modell",
+  "features.models.title": "Modelle für jede Hardware",
+
+  "how.title": "So funktioniert es",
+
+  "pricing.title": "Ehrliche Preise. Monatlich, ohne Bindung.",
+
+  "download.title": "MiLoro herunterladen",
+  "download.linux.label": "Linux",
+  "download.linux.ver": "AppImage · jede aktuelle Distribution",
+  "download.windows.label": "Windows",
+  "download.windows.ver": ".msi · alle modernen Versionen",
+  "download.macos.label": "macOS",
+  "download.macos.ver": ".dmg universal · Intel + Apple Silicon",
+  "download.cta_soon": "Demnächst verfügbar",
+  "download.cta_download": "Alpha herunterladen",
+
+  "faq.title": "Häufige Fragen"
+}

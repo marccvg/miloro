@@ -1,0 +1,78 @@
+{
+  "evaluated_at": "2026-05-15T09:09:46",
+  "samples_per_config": 5,
+  "configs": [
+    {
+      "model": "small",
+      "quantization": null,
+      "n_voces": 1,
+      "samples": 5,
+      "load_time_s": 1.27,
+      "p50_seconds": 2.449,
+      "p95_seconds": 2.592,
+      "accuracy_es": 0.951,
+      "wer": 0.049
+    },
+    {
+      "model": "small",
+      "quantization": "int8",
+      "n_voces": 1,
+      "samples": 5,
+      "load_time_s": 0.78,
+      "p50_seconds": 1.924,
+      "p95_seconds": 2.16,
+      "accuracy_es": 0.951,
+      "wer": 0.049
+    },
+    {
+      "model": "small",
+      "quantization": null,
+      "n_voces": 4,
+      "samples": 5,
+      "load_time_s": 0.75,
+      "p50_seconds": 4.425,
+      "p95_seconds": 24.754,
+      "accuracy_es": 0.415,
+      "wer": 0.585
+    },
+    {
+      "model": "medium",
+      "quantization": null,
+      "n_voces": 1,
+      "samples": 5,
+      "load_time_s": 17.87,
+      "p50_seconds": 8.672,
+      "p95_seconds": 9.899,
+      "accuracy_es": 0.927,
+      "wer": 0.073
+    },
+    {
+      "model": "medium",
+      "quantization": "int8",
+      "n_voces": 1,
+      "samples": 5,
+      "load_time_s": 2.84,
+      "p50_seconds": 4.649,
+      "p95_seconds": 4.743,
+      "accuracy_es": 0.927,
+      "wer": 0.073
+    },
+    {
+      "model": "medium",
+      "quantization": null,
+      "n_voces": 4,
+      "samples": 5,
+      "load_time_s": 2.44,
+      "p50_seconds": 9.056,
+      "p95_seconds": 18.976,
+      "accuracy_es": 0.366,
+      "wer": 0.634
+    }
+  ],
+  "verdict": {
+    "b2b_vendible": false,
+    "b2b_config_recomendada": null,
+    "b2c_vendible": false,
+    "b2c_config_recomendada": null
+  }
+}

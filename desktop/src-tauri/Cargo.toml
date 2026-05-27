@@ -1,0 +1,48 @@
+[package]
+name = "miloro-desktop"
+version = "0.0.9"
+description = "MiLoro — desktop transcripción local con Whisper"
+authors = ["MiLoro"]
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "miloro_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.0", features = [] }
+
+[dependencies]
+tauri = { version = "2.1", features = ["tray-icon"] }
+tauri-plugin-clipboard-manager = "2.0"
+# Auto-updater: app comprueba miloro.app/updater.json al arrancar, descarga firma + binario si hay versión nueva.
+tauri-plugin-updater = "2.0"
+# Autostart: arrancar MiLoro al iniciar sesión SO (Linux: ~/.config/autostart/; Win: registro; Mac: LaunchAgent).
+tauri-plugin-autostart = "2.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# PTT global linux: lectura /dev/input/event* (requiere user en grupo `input`)
+evdev = "0.13"
+# Concurrencia primitives para state compartido (PID arecord, listener handle)
+parking_lot = "0.12"
+# SIGTERM al arecord en stop_recording (cierra WAV con header íntegro)
+libc = "0.2"
+# Whisper local embebido — bindings Rust de whisper.cpp. Requiere cmake + clang
+# en host build (Linux: sudo apt install cmake build-essential clang libclang-dev).
+# Primer build compila libwhisper estático (~5-10 min). Builds siguientes son cache.
+whisper-rs = { version = "0.13", default-features = false }
+hound = "3.5"
+# Descarga modelos Whisper desde HuggingFace primera vez que se usa cada uno.
+ureq = { version = "2.10", features = ["json", "tls"] }
+sha2 = "0.10"
+# Async runtime mínimo para comandos Tauri que descargan modelos en background.
+tokio = { version = "1", features = ["fs", "io-util", "rt-multi-thread"] }
+# Cross-platform input simulation (Win/Mac). Linux mantiene path wl-copy+ydotool (sin portal popup).
+[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
+enigo = "0.2"
+
+[features]
+# Build with `cargo build --features custom-protocol` for release. dev pulls
+# devtools/dev-server automatically when run via `tauri dev`.
+custom-protocol = ["tauri/custom-protocol"]

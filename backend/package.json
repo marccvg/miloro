@@ -1,0 +1,30 @@
+{
+  "name": "@parla/backend",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Parla license server — Cloudflare Workers + D1 + Stripe. Local-first MVP.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local --persist-to .wrangler/state",
+    "db:migrate": "wrangler d1 migrations apply parla_licenses --local",
+    "db:migrate:remote": "wrangler d1 migrations apply parla_licenses --remote",
+    "db:reset": "rm -rf .wrangler/state/v3/d1 && npm run db:migrate",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "deploy": "echo 'BLOQUEADO — requiere OK explícito de Marc. Ver README §Deploy.' && exit 1"
+  },
+  "dependencies": {
+    "stripe": "^17.4.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.5.30",
+    "@cloudflare/workers-types": "^4.20241218.0",
+    "typescript": "^5.7.2",
+    "vitest": "2.1.8",
+    "wrangler": "^3.95.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

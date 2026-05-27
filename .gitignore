@@ -1,18 +1,33 @@
-# Node / Vite
-node_modules
-dist
-.vite
+# Node / Vite / Svelte
+node_modules/
+dist/
+.svelte-kit/
+.vite/
 
-# Rust / Tauri
-src-tauri/target
-src-tauri/Cargo.lock
+# Rust / Tauri target
+target/
+desktop/src-tauri/target/
+desktop/src-tauri/Cargo.lock
 
-# IDE / OS
-.DS_Store
-.idea
-.vscode
+# Wrangler cache
+.wrangler/
+
+# Backups + logs locales
 *.log
+*.bak
+*.bak.*
 
-# Local config (license keys, etc.)
+# Secrets locales (nunca commit)
 .env
+.env.*
 .env.local
+.dev.vars
+**/secrets/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

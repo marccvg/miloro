@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suscríbete a MiLoro Pro — €9/mes</title>
+  <meta name="description" content="Suscríbete a MiLoro Pro: dictado local ilimitado por €9/mes. Cancela cuando quieras." />
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<header class="nav">
+  <div class="container">
+    <a href="/" class="brand">
+      <img src="/miloro-icon.png" alt="MiLoro" width="28" height="28" />
+      <span>MiLoro</span>
+    </a>
+    <nav>
+      <a href="/#features">Funciones</a>
+      <a href="/#pricing">Precios</a>
+      <a href="/#faq">Preguntas frecuentes</a>
+    </nav>
+  </div>
+</header>
+
+<section class="signup-section">
+  <div class="container signup-container">
+    <h1>Suscríbete a MiLoro Pro</h1>
+    <p class="signup-sub">Audio ilimitado · todos los modelos · soporte prioritario · €9/mes · cancela cuando quieras</p>
+
+    <div class="plan-card-mini">
+      <div class="plan-card-mini-row">
+        <span class="amt-big">9 €</span>
+        <span class="per">/mes</span>
+        <span class="alt-price">o 72 €/año · <strong style="color:#16A34A">−33%</strong></span>
+      </div>
+      <ul class="plan-list-mini">
+        <li>1 dispositivo</li>
+        <li>Todos los modelos Whisper (small → large-v3)</li>
+        <li>Audio ilimitado</li>
+        <li>Efecto máquina de escribir + vocabulario personalizado</li>
+        <li>Updates automáticos de por vida</li>
+        <li>Soporte email prioritario</li>
+      </ul>
+    </div>
+
+    <form id="signup-form" class="signup-form">
+      <label class="field-label-block">Tu email</label>
+      <input
+        id="email"
+        type="email"
+        required
+        placeholder="tu@email.com"
+        autocomplete="email"
+      />
+      <p class="hint">Te enviaremos tu clave de licencia a este email tras el pago.</p>
+
+      <button id="submit-btn" type="submit" class="btn btn-primary btn-full">
+        Continuar al pago seguro
+      </button>
+
+      <p id="error-msg" class="error-msg" style="display:none"></p>
+    </form>
+
+    <p class="signup-note">
+      Pago seguro vía Stripe. Tarjeta o SEPA. Reembolso íntegro si no activas en 14 días.<br/>
+      ¿Solo quieres probar? <a href="/">Descarga MiLoro gratis</a> (30 min/día).
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p class="copy">© 2026 Marc Vicente García · MiLoro es marca en proceso de registro</p>
+  </div>
+</footer>
+
+<script>
+  const form = document.getElementById("signup-form");
+  const btn = document.getElementById("submit-btn");
+  const errMsg = document.getElementById("error-msg");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    if (!email || !email.includes("@")) {
+      showError("Introduce un email válido.");
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = "Redirigiendo a Stripe…";
+    errMsg.style.display = "none";
+
+    try {
+      const r = await fetch("/api/checkout/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: "pro", email }),
+      });
+      if (!r.ok) {
+        const detail = await r.json().catch(() => ({}));
+        const msg = detail.message || `Error ${r.status}`;
+        if (r.status === 503) {
+          showError("Stripe aún no está configurado para producción. Avisa a Marc: " + msg);
+        } else {
+          showError(msg);
+        }
+        btn.disabled = false;
+        btn.textContent = "Continuar al pago seguro";
+        return;
+      }
+      const data = await r.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        showError("Respuesta inesperada del servidor. Inténtalo más tarde.");
+        btn.disabled = false;
+        btn.textContent = "Continuar al pago seguro";
+      }
+    } catch (err) {
+      showError("No se pudo conectar con el servidor. Comprueba tu conexión.");
+      btn.disabled = false;
+      btn.textContent = "Continuar al pago seguro";
+    }
+  });
+
+  function showError(text) {
+    errMsg.textContent = text;
+    errMsg.style.display = "block";
+  }
+</script>
+
+<style>
+  .signup-section { padding: 4rem 0; min-height: calc(100vh - 200px); }
+  .signup-container { max-width: 540px; text-align: center; }
+  .signup-container h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+  .signup-sub { color: #78350F; font-size: 1rem; margin-bottom: 2rem; }
+  .plan-card-mini {
+    background: #FFFBEB;
+    border: 2px solid #FCD34D;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: left;
+  }
+  .plan-card-mini-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .amt-big { font-size: 2.4rem; font-weight: 800; color: #1F2937; }
+  .per { color: #78350F; font-size: 1rem; }
+  .alt-price { margin-left: auto; font-size: 0.85rem; color: #78350F; }
+  .plan-list-mini { list-style: none; padding: 0; margin: 0; }
+  .plan-list-mini li {
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #FCD34D;
+    font-size: 0.92rem;
+    color: #78350F;
+  }
+  .plan-list-mini li:last-child { border-bottom: 0; }
+  .plan-list-mini li::before { content: "✓ "; color: #16A34A; font-weight: 700; margin-right: 0.4rem; }
+  .signup-form { text-align: left; }
+  .field-label-block {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: #1F2937;
+  }
+  .signup-form input[type="email"] {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid #FCD34D;
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .signup-form input[type="email"]:focus { outline: 2px solid #16A34A; border-color: #16A34A; }
+  .hint { font-size: 0.82rem; color: #78350F; margin-bottom: 1.5rem; }
+  .btn-full { width: 100%; }
+  .error-msg {
+    background: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #EF4444;
+    border-radius: 6px;
+    padding: 0.7rem;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+  }
+  .signup-note {
+    text-align: center;
+    font-size: 0.82rem;
+    color: #78350F;
+    margin-top: 2rem;
+    line-height: 1.5;
+  }
+</style>
+
+</body>
+</html>

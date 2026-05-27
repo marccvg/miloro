@@ -1,0 +1,101 @@
+{
+  "app": {
+    "title": "MiLoro",
+    "tagline": "El teu lloro de dictat · 100% local · privat"
+  },
+  "header": {
+    "have_license": "Tinc llicència",
+    "change_license": "Canviar llicència",
+    "upgrade_to_pro": "⬆ Passar a Pro",
+    "language": "Idioma"
+  },
+  "license_modal": {
+    "title": "🔑 Activar llicència",
+    "hint": "Enganxa el teu UUID de llicència (te l'enviem per correu després de subscriure't).",
+    "placeholder": "00000000-0000-0000-0000-000000000000",
+    "verify": "Verificar",
+    "cancel": "Cancel·lar",
+    "no_license_link": "Encara no tens llicència?",
+    "get_free": "Aconsegueix-ne una gratis"
+  },
+  "quota": {
+    "free_exhausted_title": "🛑 Has arribat al límit Free de 30 min/dia.",
+    "free_exhausted_body": "MiLoro torna a funcionar demà a les 00:00 UTC, o",
+    "upgrade_link": "passa a Pro",
+    "free_pricing_suffix": "per àudio il·limitat per €9/mes."
+  },
+  "status": {
+    "listening": "🦜 Escoltant… (deixa anar la tecla)",
+    "transcribing": "✏️ Transcrivint…",
+    "delivering": "✍️ Enganxant text al cursor…",
+    "ready": "🦜 A punt per escoltar"
+  },
+  "model": {
+    "section": "📋 Model",
+    "quality": "Qualitat",
+    "language": "Idioma origen",
+    "output": "Sortida",
+    "vad": "Filtre VAD (retalla silencis)",
+    "vad_hint": "💡 VAD detecta veu i descarta silencis a l'inici/final. <strong>Recomanat OFF si dictes frases curtes</strong> (pot tallar paraules al principi). ON si graves àudios llargs.",
+    "first_download_hint": "💡 La primera vegada que utilitzes un model, es descarrega automàticament. No has de fer res."
+  },
+  "behavior": {
+    "section": "🎛️ Comportament",
+    "ptt_key": "Tecla d'activació",
+    "ptt_hint": "💡 Mantén premuda aquesta tecla i parla. Deixa-la anar per transcriure. El text s'enganxa on tinguis el cursor.",
+    "clipboard": "Copiar al porta-retalls",
+    "autotype": "Enganxa automàticament després de transcriure",
+    "typewriter": "Efecte màquina d'escriure",
+    "show_status_tags": "Mostra etiquetes d'estat a dalt",
+    "status_tags_hint": "💡 Bàner superior \"🦜 Escoltant…\" i \"✏️ Transcrivint…\". Apaga'l si prefereixes una UI més minimal."
+  },
+  "vocabulary": {
+    "section": "📝 Vocabulari personalitzat",
+    "placeholder": "Paraules tècniques, noms propis, signes perquè el model els reconegui millor. Ex: 'Anthropic, Claude, Com va? Perfecte!'",
+    "hint": "💡 Esbiaixa el model Whisper cap a la teva jerga + signes de puntuació. <strong>NO s'afegeix al text final</strong>, només ajuda a transcriure millor."
+  },
+  "autotext": {
+    "section": "✨ Text automàtic",
+    "prefix_label": "Prefix (s'afegeix a l'inici del text transcrit)",
+    "prefix_placeholder": "Ex: 'Ets un assistent útil. Respon:'",
+    "suffix_label": "Sufix (s'afegeix al final)",
+    "suffix_placeholder": "Ex: 'Respon en màxim 3 frases.'",
+    "hint": "💡 Útil si dictes per a una IA i vols afegir un prompt fix a l'inici o final automàticament."
+  },
+  "system": {
+    "section": "⚙️ Sistema",
+    "autolaunch": "Iniciar MiLoro en obrir sessió del SO",
+    "autolaunch_hint": "Per no haver d'obrir l'app cada vegada que arrenques l'ordinador.",
+    "autoupdate": "Comprovar actualitzacions automàticament",
+    "autoupdate_hint": "En arrencar, MiLoro comprova miloro.app. Si hi ha versió nova, descarrega + instal·la amb la teva confirmació.",
+    "check_updates": "🔄 Buscar actualitzacions ara",
+    "checking": "⏳ Buscant…",
+    "downloading": "⬇ Descarregant…",
+    "up_to_date": "Estàs a l'última versió.",
+    "checking_long": "Buscant…",
+    "version_available": "Versió {v} disponible.",
+    "downloading_long": "Descarregant {v}…",
+    "installed_restart": "Actualització {v} instal·lada. Reinicia MiLoro per aplicar-la."
+  },
+  "account": {
+    "devices_short": "dispositius",
+    "expires_indef": "indefinida"
+  },
+  "test_recording": {
+    "section": "🎤 Última transcripció",
+    "test": "🦜 Provar gravació 5s",
+    "recording": "🦜 Gravant...",
+    "recording_now": "⏳ Gravant 5s... parla ara",
+    "empty_hint": "Prem \"Provar gravació 5s\" a baix o mantén la tecla PTT per dictar",
+    "autosave_hint": "Els canvis es guarden automàticament en canviar qualsevol opció"
+  },
+  "devices": {
+    "title": "Els meus dispositius actius",
+    "close": "Tancar ✕",
+    "empty": "No hi ha dispositius registrats.",
+    "no_name": "Dispositiu sense nom",
+    "active_ago": "actiu {time}",
+    "deactivate_current": "🗑 Desactivar aquest dispositiu",
+    "note": "💡 Per desactivar dispositius d'altres equips: obre MiLoro des d'aquella màquina i desactiva'l des d'allà."
+  }
+}

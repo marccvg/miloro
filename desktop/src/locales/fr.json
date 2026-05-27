@@ -1,0 +1,101 @@
+{
+  "app": {
+    "title": "MiLoro",
+    "tagline": "Votre perroquet de dictée · 100% local · privé"
+  },
+  "header": {
+    "have_license": "J'ai une licence",
+    "change_license": "Changer de licence",
+    "upgrade_to_pro": "⬆ Passer en Pro",
+    "language": "Langue"
+  },
+  "license_modal": {
+    "title": "🔑 Activer la licence",
+    "hint": "Collez votre UUID de licence (nous l'envoyons par email après l'inscription).",
+    "placeholder": "00000000-0000-0000-0000-000000000000",
+    "verify": "Vérifier",
+    "cancel": "Annuler",
+    "no_license_link": "Pas encore de licence ?",
+    "get_free": "Obtenir une gratuite"
+  },
+  "quota": {
+    "free_exhausted_title": "🛑 Vous avez atteint la limite gratuite de 30 min/jour.",
+    "free_exhausted_body": "MiLoro reprend demain à 00:00 UTC, ou",
+    "upgrade_link": "passez en Pro",
+    "free_pricing_suffix": "pour de l'audio illimité à 9 €/mois."
+  },
+  "status": {
+    "listening": "🦜 J'écoute… (relâchez la touche)",
+    "transcribing": "✏️ Transcription…",
+    "delivering": "✍️ Collage du texte au curseur…",
+    "ready": "🦜 Prêt à écouter"
+  },
+  "model": {
+    "section": "📋 Modèle",
+    "quality": "Qualité",
+    "language": "Langue source",
+    "output": "Sortie",
+    "vad": "Filtre VAD (coupe les silences)",
+    "vad_hint": "💡 Le VAD détecte la voix et coupe les silences au début/fin. <strong>Recommandé OFF pour des phrases courtes</strong> (peut couper des mots au début). ON pour des audios longs.",
+    "first_download_hint": "💡 La première fois que vous utilisez un modèle, il se télécharge automatiquement. Rien à faire de votre côté."
+  },
+  "behavior": {
+    "section": "🎛️ Comportement",
+    "ptt_key": "Touche d'activation",
+    "ptt_hint": "💡 Maintenez cette touche et parlez. Relâchez pour transcrire. Le texte est collé où se trouve votre curseur.",
+    "clipboard": "Copier dans le presse-papiers",
+    "autotype": "Coller automatiquement après transcription",
+    "typewriter": "Effet machine à écrire",
+    "show_status_tags": "Afficher les étiquettes de statut en haut",
+    "status_tags_hint": "💡 Bannière supérieure \"🦜 J'écoute…\" et \"✏️ Transcription…\". Désactivez pour une UI plus minimale."
+  },
+  "vocabulary": {
+    "section": "📝 Vocabulaire personnalisé",
+    "placeholder": "Mots techniques, noms propres, signes pour que le modèle les reconnaisse mieux. Ex : 'Anthropic, Claude, Comment ça va ? Parfait !'",
+    "hint": "💡 Biaise le modèle Whisper vers votre jargon + ponctuation. <strong>N'est PAS ajouté au texte final</strong>, aide juste à mieux transcrire."
+  },
+  "autotext": {
+    "section": "✨ Texte automatique",
+    "prefix_label": "Préfixe (ajouté au début du texte transcrit)",
+    "prefix_placeholder": "Ex : 'Tu es un assistant utile. Réponds :'",
+    "suffix_label": "Suffixe (ajouté à la fin)",
+    "suffix_placeholder": "Ex : 'Réponds en 3 phrases maximum.'",
+    "hint": "💡 Utile si vous dictez pour une IA et voulez ajouter un prompt fixe au début ou à la fin automatiquement."
+  },
+  "system": {
+    "section": "⚙️ Système",
+    "autolaunch": "Lancer MiLoro à l'ouverture de session du SO",
+    "autolaunch_hint": "Pour ne pas avoir à ouvrir l'app à chaque démarrage de l'ordinateur.",
+    "autoupdate": "Vérifier les mises à jour automatiquement",
+    "autoupdate_hint": "Au démarrage, MiLoro vérifie miloro.app. S'il y a une nouvelle version, elle est téléchargée + installée avec votre confirmation.",
+    "check_updates": "🔄 Vérifier les mises à jour maintenant",
+    "checking": "⏳ Vérification…",
+    "downloading": "⬇ Téléchargement…",
+    "up_to_date": "Vous êtes sur la dernière version.",
+    "checking_long": "Vérification…",
+    "version_available": "Version {v} disponible.",
+    "downloading_long": "Téléchargement {v}…",
+    "installed_restart": "Mise à jour {v} installée. Redémarrez MiLoro pour l'appliquer."
+  },
+  "account": {
+    "devices_short": "appareils",
+    "expires_indef": "indéfinie"
+  },
+  "test_recording": {
+    "section": "🎤 Dernière transcription",
+    "test": "🦜 Tester l'enregistrement 5s",
+    "recording": "🦜 Enregistrement...",
+    "recording_now": "⏳ Enregistrement 5s... parle maintenant",
+    "empty_hint": "Cliquez \"Tester l'enregistrement 5s\" en bas ou maintenez la touche PTT pour dicter",
+    "autosave_hint": "Les changements sont sauvegardés automatiquement à chaque modification"
+  },
+  "devices": {
+    "title": "Mes appareils actifs",
+    "close": "Fermer ✕",
+    "empty": "Aucun appareil enregistré.",
+    "no_name": "Appareil sans nom",
+    "active_ago": "actif {time}",
+    "deactivate_current": "🗑 Désactiver cet appareil",
+    "note": "💡 Pour désactiver des appareils d'autres machines : ouvrez MiLoro depuis cette machine et désactivez-le de là."
+  }
+}

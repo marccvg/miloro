@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Empieza gratis con MiLoro — dictado local sin tarjeta</title>
+  <meta name="description" content="Crea tu cuenta MiLoro Free. 30 minutos de audio al día, 1 dispositivo. Sin tarjeta. Recibe tu licencia por email." />
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<header class="nav">
+  <div class="container">
+    <a href="/" class="brand">
+      <img src="/miloro-icon.png" alt="MiLoro" width="28" height="28" />
+      <span>MiLoro</span>
+    </a>
+    <nav>
+      <a href="/#features">Funciones</a>
+      <a href="/#pricing">Precios</a>
+      <a href="/#faq">Preguntas frecuentes</a>
+    </nav>
+  </div>
+</header>
+
+<section class="signup-section">
+  <div class="container signup-container">
+    <h1>Empieza gratis con MiLoro</h1>
+    <p class="signup-sub">30 minutos de audio al día · 1 dispositivo · sin tarjeta · sin caducidad</p>
+
+    <div class="plan-card-mini">
+      <div class="plan-card-mini-row">
+        <span class="amt-big">0 €</span>
+        <span class="per">para siempre</span>
+      </div>
+      <ul class="plan-list-mini">
+        <li>1 dispositivo (linux / windows / macos)</li>
+        <li>Modelo Whisper small (suficiente para uso diario)</li>
+        <li>30 minutos de audio al día</li>
+        <li>Auto-pegar al cursor + portapapeles</li>
+        <li>99 idiomas (incluido catalán y valenciano)</li>
+        <li>100 % local · tu voz nunca sale de tu equipo</li>
+      </ul>
+    </div>
+
+    <form id="signup-form" class="signup-form">
+      <label class="field-label-block">Tu email</label>
+      <input
+        id="email"
+        type="email"
+        required
+        placeholder="tu@email.com"
+        autocomplete="email"
+      />
+      <p class="hint">Te enviaremos tu clave de licencia y el enlace de descarga a este email.</p>
+
+      <button id="submit-btn" type="submit" class="btn btn-primary btn-full">
+        Enviarme mi licencia gratis
+      </button>
+
+      <p id="status-msg" class="hint" style="display:none;margin-top:1rem"></p>
+      <p id="error-msg" class="error-msg" style="display:none"></p>
+    </form>
+
+    <p class="signup-note">
+      Sin tarjeta · sin compromiso · al activar aceptas nuestras <a href="/legal/terms">condiciones</a> y <a href="/legal/privacy">privacidad</a>.<br/>
+      ¿Necesitas más? <a href="/signup">Pasa a Pro por 9 €/mes</a> · audio ilimitado, todos los modelos, 3 dispositivos.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p class="copy">© 2026 Marc Vicente García · MiLoro es marca en proceso de registro</p>
+  </div>
+</footer>
+
+<script>
+  const form = document.getElementById("signup-form");
+  const btn = document.getElementById("submit-btn");
+  const errMsg = document.getElementById("error-msg");
+  const statusMsg = document.getElementById("status-msg");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    if (!email || !email.includes("@")) {
+      showError("Introduce un email válido.");
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = "Enviando…";
+    errMsg.style.display = "none";
+    statusMsg.style.display = "none";
+
+    try {
+      const r = await fetch("/api/license/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        if (r.status === 429) {
+          showError("Demasiados intentos desde esta red. Espera 1 hora o usa otra red.");
+        } else if (r.status === 400) {
+          showError(data.error || "Email no válido.");
+        } else {
+          showError(data.error || `Error ${r.status}. Inténtalo de nuevo en un minuto.`);
+        }
+        btn.disabled = false;
+        btn.textContent = "Enviarme mi licencia gratis";
+        return;
+      }
+      // Éxito — mensaje neutro idéntico haya tenido cuenta o no (anti-enumeration)
+      statusMsg.textContent = data.message || "Revisa tu email — tu licencia debería llegar en 30-60 segundos. Si no aparece, mira la carpeta de spam.";
+      statusMsg.style.display = "block";
+      statusMsg.style.color = "#16A34A";
+      btn.style.display = "none";
+      document.getElementById("email").disabled = true;
+    } catch (err) {
+      showError("No se pudo conectar con el servidor. Comprueba tu conexión.");
+      btn.disabled = false;
+      btn.textContent = "Enviarme mi licencia gratis";
+    }
+  });
+
+  function showError(msg) {
+    errMsg.textContent = msg;
+    errMsg.style.display = "block";
+  }
+</script>
+
+</body>
+</html>

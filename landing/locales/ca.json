@@ -1,0 +1,38 @@
+{
+  "nav.features": "Funcions",
+  "nav.pricing": "Preus",
+  "nav.faq": "Preguntes freqüents",
+  "nav.download": "Descarregar",
+
+  "hero.title": "Parla amb la IA. <em>MiLoro</em> escriu per tu.",
+  "hero.sub": "El coll d'ampolla d'usar ChatGPT, Claude o qualsevol IA és teclejar. MiLoro l'elimina: manté una tecla, parla amb normalitat, deixa-la anar. El text apareix on tens el cursor — xat IA, email, codi, on sigui. <strong>100% local</strong>: la teva veu mai surt del teu equip.",
+  "hero.cta_primary": "Provar gratis",
+  "hero.cta_secondary": "Veure preus",
+  "hero.meta": "🇪🇸 Espanyol · 🇦🇩 Català · 🇬🇧 Anglès · 🇮🇹 Italià · 🇫🇷 Francès · 🇩🇪 Alemany",
+  "hero.os": "🐧 Linux · 🪟 Windows · 🍎 macOS",
+
+  "features.title": "Per què MiLoro?",
+  "features.local.title": "100% local",
+  "features.offline.title": "Sense internet",
+  "features.crossplat.title": "Multiplataforma",
+  "features.multilang.title": "Multidioma natiu",
+  "features.multilang.text": "Whisper reconeix 99 idiomes sense configuració extra — espanyol, català, valencià, anglès, francès, italià, alemany, portuguès i molts més.",
+  "features.fair.title": "Anti-pirateria just",
+  "features.models.title": "Models per a qualsevol equip",
+
+  "how.title": "Com funciona",
+
+  "pricing.title": "Preus honestos. Pagament mensual sense permanència.",
+
+  "download.title": "Descarrega MiLoro",
+  "download.linux.label": "Linux",
+  "download.linux.ver": "AppImage · qualsevol distribució recent",
+  "download.windows.label": "Windows",
+  "download.windows.ver": ".msi · totes les versions modernes",
+  "download.macos.label": "macOS",
+  "download.macos.ver": ".dmg universal · Intel + Apple Silicon",
+  "download.cta_soon": "Pròximament alfa",
+  "download.cta_download": "Descarregar alfa",
+
+  "faq.title": "Preguntes freqüents"
+}

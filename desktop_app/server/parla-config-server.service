@@ -1,0 +1,15 @@
+[Unit]
+Description=Parla — config server (Flask dogfooding backend)
+After=graphical-session.target oido-daemon.service
+
+[Service]
+Type=simple
+Environment=FLASK_ENV=production
+ExecStart=/home/Projects/parla/desktop_app/.venv/bin/python3 /home/Projects/parla/desktop_app/server/app.py
+Restart=on-failure
+RestartSec=5
+MemoryHigh=200M
+MemoryMax=400M
+
+[Install]
+WantedBy=default.target

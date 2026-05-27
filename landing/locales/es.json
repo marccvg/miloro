@@ -1,0 +1,38 @@
+{
+  "nav.features": "Funciones",
+  "nav.pricing": "Precios",
+  "nav.faq": "Preguntas frecuentes",
+  "nav.download": "Descargar",
+
+  "hero.title": "Habla con la IA. <em>MiLoro</em> escribe por ti.",
+  "hero.sub": "El cuello de botella de usar ChatGPT, Claude o cualquier IA es teclear. MiLoro lo elimina: mantén una tecla, habla con normalidad, suelta. El texto aparece donde tienes el cursor — chat IA, email, código, donde sea. <strong>100% local</strong>: tu voz nunca sale de tu equipo.",
+  "hero.cta_primary": "Probar gratis",
+  "hero.cta_secondary": "Ver precios",
+  "hero.meta": "🇪🇸 Español · 🇦🇩 Català · 🇬🇧 English · 🇮🇹 Italiano · 🇫🇷 Français · 🇩🇪 Deutsch",
+  "hero.os": "🐧 Linux · 🪟 Windows · 🍎 macOS",
+
+  "features.title": "¿Por qué MiLoro?",
+  "features.local.title": "100% local",
+  "features.offline.title": "Sin internet",
+  "features.crossplat.title": "Cross-platform",
+  "features.multilang.title": "Multidioma nativo",
+  "features.multilang.text": "Whisper reconoce 99 idiomas sin configuración extra — castellano, catalán, valenciano, inglés, francés, italiano, alemán, portugués y muchos más.",
+  "features.fair.title": "Anti-piratería justo",
+  "features.models.title": "Modelos para cualquier equipo",
+
+  "how.title": "Cómo funciona",
+
+  "pricing.title": "Precios honestos. Pago mensual sin permanencia.",
+
+  "download.title": "Descarga MiLoro",
+  "download.linux.label": "Linux",
+  "download.linux.ver": "AppImage · cualquier distribución reciente",
+  "download.windows.label": "Windows",
+  "download.windows.ver": ".msi · todas las versiones modernas",
+  "download.macos.label": "macOS",
+  "download.macos.ver": ".dmg universal · Intel + Apple Silicon",
+  "download.cta_soon": "Próximamente alpha",
+  "download.cta_download": "Descargar alpha",
+
+  "faq.title": "Preguntas frecuentes"
+}

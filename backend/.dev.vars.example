@@ -1,0 +1,6 @@
+# Copia a .dev.vars (gitignored) y rellena con valores reales.
+# .dev.vars lo usa wrangler dev + vitest pool workers como secrets locales.
+
+STRIPE_SECRET_KEY="sk_test_XXX_replace_with_real"
+STRIPE_WEBHOOK_SECRET="whsec_XXX_replace_with_real"
+ADMIN_TOKEN="local-admin-token-change-me"

@@ -1,0 +1,58 @@
+# MiLoro license server — Cloudflare Worker
+# Deploy: ver instrucciones al pie del fichero.
+name = "miloro-license-server"
+main = "src/index.ts"
+compatibility_date = "2024-12-18"
+compatibility_flags = ["nodejs_compat"]
+
+# === Route en miloro.app/api/* ===
+# Sirve el Worker en el subpath /api/ del dominio principal de Pages.
+# Cloudflare Workers routes tienen prioridad sobre Pages → solo /api/* va a este Worker.
+routes = [
+  { pattern = "miloro.app/api/*", zone_name = "miloro.app" }
+]
+
+# === D1 binding ===
+# Antes de primer deploy, ejecutar:
+#   wrangler d1 create parla_licenses
+# y pegar el database_id devuelto en database_id de abajo (sustituye TODO_PEGAR_DATABASE_ID).
+# Después aplicar migraciones:
+#   wrangler d1 migrations apply parla_licenses --remote
+[[d1_databases]]
+binding = "DB"
+database_name = "parla_licenses"
+database_id = "2b23b2ba-28e6-4288-9bc2-123cdc5f1d8a"
+migrations_dir = "migrations"
+
+# === KV namespace para manifest del Tauri updater ===
+# Marc crea el namespace UNA SOLA VEZ:
+#   wrangler kv namespace create MILORO_UPDATES
+# Y pega el id devuelto debajo descomentando + reemplazando TODO_PEGAR_KV_ID.
+# Mientras no exista el binding, /api/updater devuelve 204 always (degradacion a "no update").
+#
+[[kv_namespaces]]
+binding = "MILORO_UPDATES"
+id = "0d7c44752876408e9bdd9643eddd27ff"
+
+# === Vars públicas (no secretas) ===
+[vars]
+ENVIRONMENT = "production"
+# Mapping price_id Stripe → plan. Marc swap por los suyos al activar sandbox.
+STRIPE_PRICE_STANDARD = "price_test_standard_placeholder"
+STRIPE_PRICE_PRO = "price_test_pro_placeholder"
+# Origin de la app cliente (para Checkout return_url).
+APP_ORIGIN = "https://miloro.app"
+# TTL cache verify en segundos (60s = balance privacy vs DB load).
+VERIFY_CACHE_TTL_S = "60"
+# Rate limit activate por IP/hora.
+ACTIVATE_RATE_LIMIT_PER_HOUR = "5"
+
+# === Secrets (NO commit) ===
+# Configurar con:
+#   wrangler secret put STRIPE_SECRET_KEY      → sk_test_XXX...
+#   wrangler secret put STRIPE_WEBHOOK_SECRET  → whsec_XXX...
+#   wrangler secret put ADMIN_TOKEN            → token bearer para /api/license/issue
+# En local, vitest/dev usa los valores de .dev.vars (gitignored).
+
+[observability]
+enabled = true

@@ -1,0 +1,38 @@
+{
+  "nav.features": "Features",
+  "nav.pricing": "Pricing",
+  "nav.faq": "FAQ",
+  "nav.download": "Download",
+
+  "hero.title": "Talk to AI. <em>MiLoro</em> writes for you.",
+  "hero.sub": "The bottleneck of using ChatGPT, Claude or any AI is typing. MiLoro removes it: hold a key, speak naturally, release. Text appears where your cursor is — AI chat, email, code, anywhere. <strong>100% local</strong>: your voice never leaves your machine.",
+  "hero.cta_primary": "Try free",
+  "hero.cta_secondary": "See pricing",
+  "hero.meta": "🇪🇸 Spanish · 🇦🇩 Catalan · 🇬🇧 English · 🇮🇹 Italian · 🇫🇷 French · 🇩🇪 German",
+  "hero.os": "🐧 Linux · 🪟 Windows · 🍎 macOS",
+
+  "features.title": "Why MiLoro?",
+  "features.local.title": "100% local",
+  "features.offline.title": "No internet needed",
+  "features.crossplat.title": "Cross-platform",
+  "features.multilang.title": "Native multilingual",
+  "features.multilang.text": "Whisper recognizes 99 languages out of the box — Spanish, Catalan, English, French, Italian, German, Portuguese and many more.",
+  "features.fair.title": "Fair anti-piracy",
+  "features.models.title": "Models for any hardware",
+
+  "how.title": "How it works",
+
+  "pricing.title": "Honest pricing. Monthly, no lock-in.",
+
+  "download.title": "Download MiLoro",
+  "download.linux.label": "Linux",
+  "download.linux.ver": "AppImage · any recent distro",
+  "download.windows.label": "Windows",
+  "download.windows.ver": ".msi · all modern versions",
+  "download.macos.label": "macOS",
+  "download.macos.ver": ".dmg universal · Intel + Apple Silicon",
+  "download.cta_soon": "Coming soon",
+  "download.cta_download": "Download alpha",
+
+  "faq.title": "Frequently Asked Questions"
+}

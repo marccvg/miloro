@@ -1,0 +1,25 @@
+# systemd-user unit (template) — Oído Pro demo
+# `install.sh` sustituye __INSTALL_DIR__ por la ruta absoluta del install
+# y deja el resultado en ~/.config/systemd/user/oido-daemon.service.
+
+[Unit]
+Description=Oído Pro (demo) — daemon Whisper precargado
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=__INSTALL_DIR__/.venv/bin/python3 __INSTALL_DIR__/scripts/oido_daemon.py
+
+# Variables ajustables con: systemctl --user edit oido-daemon
+Environment=WHISPER_MODEL=base
+Environment=WHISPER_LANGUAGE=es
+Environment=WHISPER_VAD=1
+Environment=HF_HUB_DISABLE_SYMLINKS_WARNING=1
+Environment=PYTHONWARNINGS=ignore
+
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target

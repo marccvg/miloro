@@ -1,0 +1,101 @@
+{
+  "app": {
+    "title": "MiLoro",
+    "tagline": "Your dictation parrot · 100% local · private"
+  },
+  "header": {
+    "have_license": "I have a license",
+    "change_license": "Change license",
+    "upgrade_to_pro": "⬆ Upgrade to Pro",
+    "language": "Language"
+  },
+  "license_modal": {
+    "title": "🔑 Activate license",
+    "hint": "Paste your license UUID (we email it to you after signup).",
+    "placeholder": "00000000-0000-0000-0000-000000000000",
+    "verify": "Verify",
+    "cancel": "Cancel",
+    "no_license_link": "Don't have a license yet?",
+    "get_free": "Get one for free"
+  },
+  "quota": {
+    "free_exhausted_title": "🛑 You've hit the Free 30 min/day limit.",
+    "free_exhausted_body": "MiLoro resumes tomorrow at 00:00 UTC, or",
+    "upgrade_link": "upgrade to Pro",
+    "free_pricing_suffix": "for unlimited audio at €9/month."
+  },
+  "status": {
+    "listening": "🦜 Listening… (release key)",
+    "transcribing": "✏️ Transcribing…",
+    "delivering": "✍️ Pasting text at cursor…",
+    "ready": "🦜 Ready to listen"
+  },
+  "model": {
+    "section": "📋 Model",
+    "quality": "Quality",
+    "language": "Source language",
+    "output": "Output",
+    "vad": "VAD filter (trim silences)",
+    "vad_hint": "💡 VAD detects voice and trims silences at start/end. <strong>Recommended OFF for short phrases</strong> (it may cut starting words). ON for long audio.",
+    "first_download_hint": "💡 The first time you use a model it downloads automatically. Nothing to do on your side."
+  },
+  "behavior": {
+    "section": "🎛️ Behavior",
+    "ptt_key": "Activation key",
+    "ptt_hint": "💡 Hold this key and speak. Release to transcribe. The text is pasted wherever your cursor is.",
+    "clipboard": "Copy to clipboard",
+    "autotype": "Auto-paste after transcribing",
+    "typewriter": "Typewriter effect",
+    "show_status_tags": "Show status tags at top",
+    "status_tags_hint": "💡 Top banner \"🦜 Listening…\" and \"✏️ Transcribing…\". Turn off for a more minimal UI."
+  },
+  "vocabulary": {
+    "section": "📝 Custom vocabulary",
+    "placeholder": "Technical words, proper nouns, punctuation marks so the model recognises them better. E.g.: 'Anthropic, Claude, How's it going?'",
+    "hint": "💡 Biases the Whisper model towards your jargon + punctuation. <strong>It's NOT added to the final text</strong>, only helps transcribe better."
+  },
+  "autotext": {
+    "section": "✨ Auto text",
+    "prefix_label": "Prefix (added at the start of transcribed text)",
+    "prefix_placeholder": "E.g.: 'You are a helpful assistant. Reply:'",
+    "suffix_label": "Suffix (added at the end)",
+    "suffix_placeholder": "E.g.: 'Reply in 3 sentences max.'",
+    "hint": "💡 Useful if you dictate for an AI and want to add a fixed prompt at the start or end automatically."
+  },
+  "system": {
+    "section": "⚙️ System",
+    "autolaunch": "Launch MiLoro at OS login",
+    "autolaunch_hint": "So you don't have to open the app every time you start your computer.",
+    "autoupdate": "Check for updates automatically",
+    "autoupdate_hint": "On launch, MiLoro checks miloro.app. If there's a new version, it downloads + installs with your confirmation.",
+    "check_updates": "🔄 Check for updates now",
+    "checking": "⏳ Checking…",
+    "downloading": "⬇ Downloading…",
+    "up_to_date": "You're on the latest version.",
+    "checking_long": "Checking…",
+    "version_available": "Version {v} available.",
+    "downloading_long": "Downloading {v}…",
+    "installed_restart": "Update {v} installed. Restart MiLoro to apply."
+  },
+  "account": {
+    "devices_short": "devices",
+    "expires_indef": "indefinite"
+  },
+  "test_recording": {
+    "section": "🎤 Last transcription",
+    "test": "🦜 Test recording 5s",
+    "recording": "🦜 Recording...",
+    "recording_now": "⏳ Recording 5s... speak now",
+    "empty_hint": "Click \"Test recording 5s\" below or hold the PTT key to dictate",
+    "autosave_hint": "Changes are saved automatically when you change any option"
+  },
+  "devices": {
+    "title": "My active devices",
+    "close": "Close ✕",
+    "empty": "No devices registered.",
+    "no_name": "Unnamed device",
+    "active_ago": "active {time}",
+    "deactivate_current": "🗑 Deactivate this device",
+    "note": "💡 To deactivate devices from other machines: open MiLoro on that machine and deactivate it from there."
+  }
+}
