@@ -348,9 +348,9 @@ fn set_tray_state(state: String, app: AppHandle) -> Result<(), String> {
     // tauri::include_image! procesa el PNG en compile time y devuelve Image<'static>
     // con bytes RGBA decodificados — funciona en cualquier version Tauri 2.x.
     let img = match state.as_str() {
-        "recording" => tauri::include_image!("../icons/miloro-tray-recording.png"),
-        "transcribing" => tauri::include_image!("../icons/miloro-tray-transcribing.png"),
-        _ => tauri::include_image!("../icons/miloro-tray-idle.png"),
+        "recording" => tauri::include_image!("icons/miloro-tray-recording.png"),
+        "transcribing" => tauri::include_image!("icons/miloro-tray-transcribing.png"),
+        _ => tauri::include_image!("icons/miloro-tray-idle.png"),
     };
     let tray = app.tray_by_id("miloro-tray")
         .ok_or("tray no encontrado".to_string())?;
@@ -608,7 +608,7 @@ pub fn run() {
 
             // Icono inicial: estado idle (gris-verde). Frontend cambia a recording/transcribing
             // via comando set_tray_state cuando cambia su estado interno.
-            let idle_icon = tauri::include_image!("../icons/miloro-tray-idle.png");
+            let idle_icon = tauri::include_image!("icons/miloro-tray-idle.png");
             let _tray = TrayIconBuilder::with_id("miloro-tray")
                 .tooltip("MiLoro — dictado por voz")
                 .icon(idle_icon)
