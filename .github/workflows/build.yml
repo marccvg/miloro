@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version (ej. 0.0.9) — solo etiqueta, NO bumpea archivos'
+        description: 'Version label (info — el build real lee de tauri.conf.json del checkout)'
         required: true
-        default: '0.0.9'
+        default: '0.0.10'
 
 jobs:
   build:
