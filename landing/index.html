@@ -67,17 +67,17 @@
       <div class="card">
         <div class="ic">🔒</div>
         <h3 data-i18n="features.local.title">100% local</h3>
-        <p>Los audios y el texto transcrito jamás abandonan tu equipo. Cumple GDPR y EU AI Act 2026 por diseño.</p>
+        <p data-i18n="features.local.text">Los audios y el texto transcrito jamás abandonan tu equipo. Cumple GDPR y EU AI Act 2026 por diseño.</p>
       </div>
       <div class="card">
         <div class="ic">⚡</div>
         <h3 data-i18n="features.offline.title">Sin internet</h3>
-        <p>Funciona en avión, sin red, sin VPN. No depende de la latencia ni del estado del servicio de un tercero.</p>
+        <p data-i18n="features.offline.text">Funciona en avión, sin red, sin VPN. No depende de la latencia ni del estado del servicio de un tercero.</p>
       </div>
       <div class="card">
         <div class="ic">🌍</div>
         <h3 data-i18n="features.crossplat.title">Cross-platform</h3>
-        <p>Un solo producto para Linux, Windows y macOS. Mismo modelo, misma experiencia.</p>
+        <p data-i18n="features.crossplat.text">Un solo producto para Linux, Windows y macOS. Mismo modelo, misma experiencia.</p>
       </div>
       <div class="card">
         <div class="ic">🌐</div>
@@ -87,12 +87,12 @@
       <div class="card">
         <div class="ic">🛡️</div>
         <h3 data-i18n="features.fair.title">Anti-piratería justo</h3>
-        <p>Limitamos por dispositivo, no por cuenta. Puedes desactivar uno y activar otro cuando quieras.</p>
+        <p data-i18n="features.fair.text">Limitamos por dispositivo, no por cuenta. Puedes desactivar uno y activar otro cuando quieras.</p>
       </div>
       <div class="card">
         <div class="ic">🧠</div>
         <h3 data-i18n="features.models.title">Tres tamaños de modelo</h3>
-        <p>Small para portátiles modestos. Medium equilibrio rendimiento/calidad. Large para precisión máxima.</p>
+        <p data-i18n="features.models.text">Small para portátiles modestos. Medium equilibrio rendimiento/calidad. Large para precisión máxima.</p>
       </div>
     </div>
   </div>
@@ -102,10 +102,10 @@
   <div class="container">
     <h2 data-i18n="how.title">Cómo funciona</h2>
     <ol class="steps">
-      <li><span class="num">1</span><div><strong>Instala MiLoro</strong> en tu equipo. La primera vez te recomienda el modelo Whisper según tu RAM.</div></li>
-      <li><span class="num">2</span><div><strong>Configura tu tecla</strong> de push-to-talk (PTT). Por defecto: <code>Right Ctrl</code>.</div></li>
-      <li><span class="num">3</span><div><strong>Mantén la tecla pulsada</strong>, habla con normalidad, suelta.</div></li>
-      <li><span class="num">4</span><div><strong>El texto aparece</strong> donde tengas el cursor — email, Word, terminal, browser, lo que sea.</div></li>
+      <li><span class="num">1</span><div data-i18n-html="how.step1"><strong>Instala MiLoro</strong> en tu equipo. La primera vez te recomienda el modelo Whisper según tu RAM.</div></li>
+      <li><span class="num">2</span><div data-i18n-html="how.step2"><strong>Configura tu tecla</strong> de push-to-talk (PTT). Por defecto: <code>Right Ctrl</code>.</div></li>
+      <li><span class="num">3</span><div data-i18n-html="how.step3"><strong>Mantén la tecla pulsada</strong>, habla con normalidad, suelta.</div></li>
+      <li><span class="num">4</span><div data-i18n-html="how.step4"><strong>El texto aparece</strong> donde tengas el cursor — email, Word, terminal, browser, lo que sea.</div></li>
     </ol>
   </div>
 </section>
@@ -113,47 +113,47 @@
 <section id="pricing" class="pricing">
   <div class="container">
     <h2 data-i18n="pricing.title">Precios honestos. Pago mensual sin permanencia.</h2>
-    <p class="sub-h2">Cancela cuando quieras desde el panel. Reembolso íntegro si no activas en 14 días.</p>
+    <p class="sub-h2" data-i18n="pricing.sub">Cancela cuando quieras desde el panel. Reembolso íntegro si no activas en 14 días.</p>
     <div class="plans two-tier">
 
       <div class="plan">
         <div class="plan-head">
           <h3>Free</h3>
-          <div class="price"><span class="amt">0 €</span><span class="period">para siempre</span></div>
+          <div class="price"><span class="amt">0 €</span><span class="period" data-i18n="pricing.free.period">para siempre</span></div>
         </div>
         <ul>
-          <li>1 dispositivo</li>
-          <li>Modelo Whisper small</li>
-          <li>30 minutos/día de audio</li>
-          <li>Todos los idiomas (99 vía Whisper)</li>
-          <li>Sin tarjeta — sin caducidad</li>
+          <li data-i18n="pricing.free.feat1">1 dispositivo</li>
+          <li data-i18n="pricing.free.feat2">Modelo Whisper small</li>
+          <li data-i18n="pricing.free.feat3">30 minutos/día de audio</li>
+          <li data-i18n="pricing.free.feat4">Todos los idiomas (99 vía Whisper)</li>
+          <li data-i18n="pricing.free.feat5">Sin tarjeta — sin caducidad</li>
         </ul>
-        <a href="/get-started" class="btn btn-ghost">Empezar gratis</a>
+        <a href="/get-started" class="btn btn-ghost" data-i18n="pricing.free.cta">Empezar gratis</a>
       </div>
 
       <div class="plan featured">
-        <div class="ribbon">Recomendado</div>
+        <div class="ribbon" data-i18n="pricing.pro.ribbon">Recomendado</div>
         <div class="plan-head">
           <h3>Pro</h3>
-          <div class="price"><span class="amt">9 €</span><span class="period">/mes</span></div>
-          <div class="price-alt">o 72 € / año · <span class="discount-badge">−33%</span></div>
+          <div class="price"><span class="amt">9 €</span><span class="period" data-i18n="pricing.pro.period">/mes</span></div>
+          <div class="price-alt" data-i18n-html="pricing.pro.alt">o 72 € / año · <span class="discount-badge">−33%</span></div>
         </div>
         <ul>
-          <li>3 dispositivos</li>
-          <li>Todos los modelos (small → large-v3)</li>
-          <li>Audio ilimitado</li>
-          <li>Efecto máquina de escribir</li>
-          <li>Vocabulario personalizado</li>
-          <li>Soporte email prioritario</li>
-          <li>Updates automáticos de por vida</li>
+          <li data-i18n="pricing.pro.feat1">3 dispositivos</li>
+          <li data-i18n="pricing.pro.feat2">Todos los modelos (small → large-v3)</li>
+          <li data-i18n="pricing.pro.feat3">Audio ilimitado</li>
+          <li data-i18n="pricing.pro.feat4">Efecto máquina de escribir</li>
+          <li data-i18n="pricing.pro.feat5">Vocabulario personalizado</li>
+          <li data-i18n="pricing.pro.feat6">Soporte email prioritario</li>
+          <li data-i18n="pricing.pro.feat7">Updates automáticos de por vida</li>
         </ul>
-        <a href="/signup" class="btn btn-primary">Empezar Pro</a>
+        <a href="/signup" class="btn btn-primary" data-i18n="pricing.pro.cta">Empezar Pro</a>
       </div>
 
       <!-- Compliance €49 OCULTO de momento (Marc 2026-05-26): solo Free + Pro hasta validar Free. -->
 
     </div>
-    <p class="pricing-note">
+    <p class="pricing-note" data-i18n="pricing.note">
       Precios IVA incluido para consumidor final UE. Pago con tarjeta o SEPA vía Stripe.
       Empresas con NIF intracomunitario: inversión sujeto pasivo aplicable.
     </p>
@@ -163,7 +163,7 @@
 <section id="download" class="download">
   <div class="container">
     <h2 data-i18n="download.title">Descarga MiLoro</h2>
-    <p class="sub-h2">Multiplataforma. Mismo producto. Mismo precio.</p>
+    <p class="sub-h2" data-i18n="download.sub">Multiplataforma. Mismo producto. Mismo precio.</p>
     <div class="dl-grid">
       <div class="dl">
         <div class="os-icon">
@@ -207,7 +207,7 @@
         <a href="https://miloro.app/api/download/macos" class="btn btn-primary" data-state="available" data-i18n="download.cta_download">Descargar alpha</a>
       </div>
     </div>
-    <p class="alpha-note">
+    <p class="alpha-note" data-i18n-html="download.alpha_note">
       MiLoro está en <strong>alpha privada</strong>. Si quieres entrar en la lista de probadores tempranos, escribe a
       <a href="mailto:soporte@miloro.app">soporte@miloro.app</a>.
     </p>
@@ -219,43 +219,43 @@
     <h2 data-i18n="faq.title">Preguntas frecuentes</h2>
 
     <details>
-      <summary>¿De verdad mi voz no sale del ordenador?</summary>
-      <p>Sí, de verdad. Whisper se ejecuta localmente en tu CPU/GPU. La aplicación solo se conecta a nuestros servidores para verificar tu licencia (1 ping cada 7 días) y, opcionalmente, enviar volcados de fallos anónimos si autorizas.</p>
+      <summary data-i18n="faq.q1.q">¿De verdad mi voz no sale del ordenador?</summary>
+      <p data-i18n="faq.q1.a">Sí, de verdad. Whisper se ejecuta localmente en tu CPU/GPU. La aplicación solo se conecta a nuestros servidores para verificar tu licencia (1 ping cada 7 días) y, opcionalmente, enviar volcados de fallos anónimos si autorizas.</p>
     </details>
 
     <details>
-      <summary>¿Qué pasa si pierdo internet 1 semana?</summary>
-      <p>MiLoro entra en modo offline tolerante durante 30 días sin pedirte nada. Si en 30 días no consigue verificar licencia, te notifica y te pide reactivar cuando tengas conexión.</p>
+      <summary data-i18n="faq.q2.q">¿Qué pasa si pierdo internet 1 semana?</summary>
+      <p data-i18n="faq.q2.a">MiLoro entra en modo offline tolerante durante 30 días sin pedirte nada. Si en 30 días no consigue verificar licencia, te notifica y te pide reactivar cuando tengas conexión.</p>
     </details>
 
     <details>
-      <summary>¿Cuánta RAM necesito?</summary>
-      <p>La RAM no es un problema: MiLoro tiene modelos desde muy pequeños (39 MB, corre en cualquier portátil) hasta modelos grandes para máxima calidad (3 GB, ideal en equipos con 8 GB+ libres). Al instalar, el sistema detecta tu hardware y sugiere el modelo óptimo. Siempre puedes cambiarlo desde Configuración.</p>
+      <summary data-i18n="faq.q3.q">¿Cuánta RAM necesito?</summary>
+      <p data-i18n="faq.q3.a">La RAM no es un problema: MiLoro tiene modelos desde muy pequeños (39 MB, corre en cualquier portátil) hasta modelos grandes para máxima calidad (3 GB, ideal en equipos con 8 GB+ libres). Al instalar, el sistema detecta tu hardware y sugiere el modelo óptimo. Siempre puedes cambiarlo desde Configuración.</p>
     </details>
 
     <details>
-      <summary>¿Funciona con audífonos / micros USB?</summary>
-      <p>Sí. MiLoro respeta el micrófono por defecto del sistema operativo. Cambia el dispositivo desde la configuración del SO y MiLoro lo seguirá.</p>
+      <summary data-i18n="faq.q4.q">¿Funciona con audífonos / micros USB?</summary>
+      <p data-i18n="faq.q4.a">Sí. MiLoro respeta el micrófono por defecto del sistema operativo. Cambia el dispositivo desde la configuración del SO y MiLoro lo seguirá.</p>
     </details>
 
     <details>
-      <summary>¿Puedo cambiar de plan?</summary>
-      <p>Sí, en cualquier momento desde el panel miloro.app/dashboard. Subir tiene efecto inmediato (cobramos pro-rata). Bajar tiene efecto al final del periodo en curso.</p>
+      <summary data-i18n="faq.q5.q">¿Puedo cambiar de plan?</summary>
+      <p data-i18n="faq.q5.a">Sí, en cualquier momento desde el panel miloro.app/dashboard. Subir tiene efecto inmediato (cobramos pro-rata). Bajar tiene efecto al final del periodo en curso.</p>
     </details>
 
     <details>
-      <summary>¿Por qué hay limite de dispositivos?</summary>
-      <p>Para mantener el precio bajo y evitar la cuenta compartida masiva. Puedes desactivar un dispositivo y activar otro las veces que quieras desde el panel.</p>
+      <summary data-i18n="faq.q6.q">¿Por qué hay límite de dispositivos?</summary>
+      <p data-i18n="faq.q6.a">Para mantener el precio bajo y evitar la cuenta compartida masiva. Puedes desactivar un dispositivo y activar otro las veces que quieras desde el panel.</p>
     </details>
 
     <details>
-      <summary>¿Cómo cancelo?</summary>
-      <p>Desde miloro.app/dashboard → Suscripción → Cancelar. Mantienes acceso hasta el final del periodo pagado. Sin preguntas, sin retención agresiva.</p>
+      <summary data-i18n="faq.q7.q">¿Cómo cancelo?</summary>
+      <p data-i18n="faq.q7.a">Desde miloro.app/dashboard → Suscripción → Cancelar. Mantienes acceso hasta el final del periodo pagado. Sin preguntas, sin retención agresiva.</p>
     </details>
 
     <details>
-      <summary>¿Hacéis facturas?</summary>
-      <p>Sí, recibo automático tras cada cobro al email registrado. Para factura con NIF empresa, indícalo al registrarte o escribe a billing@miloro.app.</p>
+      <summary data-i18n="faq.q8.q">¿Hacéis facturas?</summary>
+      <p data-i18n="faq.q8.a">Sí, recibo automático tras cada cobro al email registrado. Para factura con NIF empresa, indícalo al registrarte o escribe a billing@miloro.app.</p>
     </details>
 
   </div>
@@ -266,21 +266,21 @@
     <div class="foot-grid foot-grid-simple">
       <div>
         <div class="foot-brand">MiLoro</div>
-        <p>Dictado por voz local. Castellón, España.</p>
+        <p data-i18n="footer.tagline">Dictado por voz local. Castellón, España.</p>
       </div>
       <div>
-        <h4>Producto</h4>
-        <a href="#features">Funciones</a>
-        <a href="#pricing">Precios</a>
-        <a href="#download">Descargar</a>
+        <h4 data-i18n="footer.section_product">Producto</h4>
+        <a href="#features" data-i18n="nav.features">Funciones</a>
+        <a href="#pricing" data-i18n="nav.pricing">Precios</a>
+        <a href="#download" data-i18n="nav.download">Descargar</a>
       </div>
       <div>
-        <h4>Contacto</h4>
+        <h4 data-i18n="footer.section_contact">Contacto</h4>
         <a href="mailto:soporte@miloro.app">soporte@miloro.app</a>
-        <p class="foot-note">Alpha privada — privacidad, términos y reembolsos: documentación legal en preparación.</p>
+        <p class="foot-note" data-i18n="footer.alpha_note">Alpha privada — privacidad, términos y reembolsos: documentación legal en preparación.</p>
       </div>
     </div>
-    <p class="copy">© 2026 Marc Vicente García · MiLoro es marca en proceso de registro</p>
+    <p class="copy" data-i18n="footer.copy">© 2026 Marc Vicente García · MiLoro es marca en proceso de registro</p>
   </div>
 </footer>
 
