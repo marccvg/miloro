@@ -82,9 +82,13 @@ LINUX_SIG=$(find_asset "MiLoro_${VERSION}_amd64.AppImage.sig")
 # donde el AppImage ha tenido crashes amarillos WebKit). El AppImage queda disponible vía
 # /api/download/linux?format=appimage para developers.
 LINUX_DEB=$(find_asset "MiLoro_${VERSION}_amd64.deb")
+# v0.0.14+: el workflow firma el .deb post-build con Tauri signer (Tauri 2 no lo hace nativo).
+# Sin este .sig, los clientes .deb no pueden auto-actualizar (install_deb requiere sig válida).
+LINUX_DEB_SIG=$(find_asset "MiLoro_${VERSION}_amd64.deb.sig")
+LINUX_RPM=$(find_asset "MiLoro-${VERSION}-1.x86_64.rpm")
+LINUX_RPM_SIG=$(find_asset "MiLoro-${VERSION}-1.x86_64.rpm.sig")
 # Updater wrapper (Tauri 2 con createUpdaterArtifacts:"v1Compatible"). Es el .AppImage
-# empaquetado en tar.gz, lo que espera el plugin updater plantilla v1Compatible (compatible
-# con clientes antiguos que sufrirían "invalid updater binary format" con raw .AppImage).
+# empaquetado en tar.gz, lo que espera el plugin updater para clientes instalados desde AppImage.
 LINUX_UPDATER_TGZ=$(find_asset "MiLoro_${VERSION}_amd64.AppImage.tar.gz")
 LINUX_UPDATER_SIG=$(find_asset "MiLoro_${VERSION}_amd64.AppImage.tar.gz.sig")
 
@@ -128,11 +132,13 @@ fi
 
 echo ""
 echo "Assets detectados:"
-[ -n "$LINUX_APPIMAGE" ]    && echo "  ✓ Linux x86_64:        $(basename "$LINUX_APPIMAGE")"   || echo "  ✗ Linux x86_64:        NO encontrado"
-[ -n "$LINUX_DEB" ]         && echo "  ✓ Linux .deb:          $(basename "$LINUX_DEB")"        || echo "  ✗ Linux .deb:          NO encontrado"
-[ -n "$LINUX_UPDATER_TGZ" ] && echo "  ✓ Linux updater .tgz:  $(basename "$LINUX_UPDATER_TGZ")" || echo "  ✗ Linux updater .tgz:  NO encontrado (auto-update fallará — necesitas v1Compatible en tauri.conf)"
-[ -n "$WIN_NSIS" ]          && echo "  ✓ Windows x86_64:      $(basename "$WIN_NSIS")"         || echo "  ✗ Windows x86_64:      NO encontrado"
-[ -n "$WIN_UPDATER_ZIP" ]   && echo "  ✓ Windows updater zip: $(basename "$WIN_UPDATER_ZIP")"  || echo "  ✗ Windows updater zip: NO encontrado (auto-update fallará — necesitas v1Compatible en tauri.conf)"
+[ -n "$LINUX_APPIMAGE" ]    && echo "  ✓ Linux x86_64:         $(basename "$LINUX_APPIMAGE")"    || echo "  ✗ Linux x86_64:         NO encontrado"
+[ -n "$LINUX_DEB" ]         && echo "  ✓ Linux .deb:           $(basename "$LINUX_DEB")"         || echo "  ✗ Linux .deb:           NO encontrado"
+[ -n "$LINUX_DEB_SIG" ]     && echo "  ✓ Linux .deb.sig:       $(basename "$LINUX_DEB_SIG")"     || echo "  ✗ Linux .deb.sig:       NO encontrado (clientes .deb NO podrán auto-update — añade step Sign Linux .deb en workflow CI)"
+[ -n "$LINUX_RPM_SIG" ]     && echo "  ✓ Linux .rpm.sig:       $(basename "$LINUX_RPM_SIG")"     || echo "  - Linux .rpm.sig:       NO encontrado (clientes .rpm NO podrán auto-update; optional)"
+[ -n "$LINUX_UPDATER_TGZ" ] && echo "  ✓ Linux updater .tgz:   $(basename "$LINUX_UPDATER_TGZ")" || echo "  ✗ Linux updater .tgz:   NO encontrado (clientes .AppImage NO podrán auto-update)"
+[ -n "$WIN_NSIS" ]          && echo "  ✓ Windows x86_64:       $(basename "$WIN_NSIS")"          || echo "  ✗ Windows x86_64:       NO encontrado"
+[ -n "$WIN_UPDATER_ZIP" ]   && echo "  ✓ Windows updater zip:  $(basename "$WIN_UPDATER_ZIP")"   || echo "  ✗ Windows updater zip:  NO encontrado"
 [ -n "$MAC_X86_TARGZ" ]   && echo "  ✓ macOS x86_64:   $(basename "$MAC_X86_TARGZ")"  || echo "  ✗ macOS x86_64:   NO encontrado"
 [ -n "$MAC_ARM_TARGZ" ]   && echo "  ✓ macOS aarch64:  $(basename "$MAC_ARM_TARGZ")"  || echo "  ✗ macOS aarch64:  NO encontrado"
 
@@ -156,6 +162,9 @@ upload() {
 upload "$LINUX_APPIMAGE"    "v$VERSION/$(basename "$LINUX_APPIMAGE")"
 upload "$LINUX_SIG"         "v$VERSION/$(basename "$LINUX_SIG")"
 upload "$LINUX_DEB"         "v$VERSION/$(basename "$LINUX_DEB")"
+upload "$LINUX_DEB_SIG"     "v$VERSION/$(basename "$LINUX_DEB_SIG")"
+upload "$LINUX_RPM"         "v$VERSION/$(basename "$LINUX_RPM")"
+upload "$LINUX_RPM_SIG"     "v$VERSION/$(basename "$LINUX_RPM_SIG")"
 upload "$LINUX_UPDATER_TGZ" "v$VERSION/$(basename "$LINUX_UPDATER_TGZ")"
 upload "$LINUX_UPDATER_SIG" "v$VERSION/$(basename "$LINUX_UPDATER_SIG")"
 upload "$WIN_NSIS"          "v$VERSION/$(basename "$WIN_NSIS")"
@@ -171,22 +180,45 @@ upload "$MAC_ARM_SIG"     "v$VERSION/$(basename "$MAC_ARM_SIG")"
 echo ""
 echo "--- 4. Publicar manifest stable (todas las platforms disponibles) ---"
 ARGS=()
-# El manifest del updater apunta al wrapper (.tar.gz / .zip), NO al raw .AppImage/.exe,
-# porque el plugin Tauri updater (v1Compatible) lo espera empaquetado. El raw queda en R2
-# para /api/download/* (descarga directa de usuarios desde la landing).
-if [ -n "$LINUX_UPDATER_TGZ" ] && [ -n "$LINUX_UPDATER_SIG" ]; then
-  ARGS+=("--linux-url=$R2_PUBLIC_BASE/v$VERSION/$(basename "$LINUX_UPDATER_TGZ")")
-  ARGS+=("--linux-sig=$(cat "$LINUX_UPDATER_SIG")")
-elif [ -n "$LINUX_APPIMAGE" ]; then
-  echo "  ⚠ Fallback Linux: usando raw .AppImage en manifest (clientes con plugin viejo verán 'invalid updater binary format')" >&2
+# v0.0.14+ — pasamos:
+#   --linux-url + --linux-sig: TOP-LEVEL (lo que ve el endpoint OLD usado por clientes v0.0.13).
+#       Default a .deb porque Marc instaló desde .deb. Sus clientes v0.0.13 .deb harán install_deb
+#       sobre estos bytes → si son .deb (con sig válida) → update OK. Para .AppImage users no hay
+#       camino desde v0.0.13 — necesitan reinstalación manual (sin users reales aún, no importa).
+#   --linux-{deb,appimage,rpm}-url + sig: BUNDLES (endpoint NEW usado por clientes v0.0.14+).
+#       Cada client trae bundle_type en URL → backend devuelve el bundle correcto.
+if [ -n "$LINUX_DEB" ] && [ -n "$LINUX_DEB_SIG" ]; then
+  # Top-level Linux → .deb (compat con v0.0.13 .deb installs vía endpoint OLD)
+  ARGS+=("--linux-url=$R2_PUBLIC_BASE/v$VERSION/$(basename "$LINUX_DEB")")
+  ARGS+=("--linux-sig=$(cat "$LINUX_DEB_SIG")")
+  # Bundle deb (endpoint NEW)
+  ARGS+=("--linux-deb-url=$R2_PUBLIC_BASE/v$VERSION/$(basename "$LINUX_DEB")")
+  ARGS+=("--linux-deb-sig=$(cat "$LINUX_DEB_SIG")")
+elif [ -n "$LINUX_APPIMAGE" ] && [ -n "$LINUX_SIG" ]; then
+  echo "  ⚠ Fallback Linux: usando .AppImage raw como top-level (.deb.sig no encontrado — añade step Sign Linux .deb en CI)" >&2
   ARGS+=("--linux-url=$R2_PUBLIC_BASE/v$VERSION/$(basename "$LINUX_APPIMAGE")")
   ARGS+=("--linux-sig=$(cat "$LINUX_SIG")")
 fi
+# Bundle appimage (endpoint NEW para clientes .AppImage v0.0.14+)
+if [ -n "$LINUX_UPDATER_TGZ" ] && [ -n "$LINUX_UPDATER_SIG" ]; then
+  ARGS+=("--linux-appimage-url=$R2_PUBLIC_BASE/v$VERSION/$(basename "$LINUX_UPDATER_TGZ")")
+  ARGS+=("--linux-appimage-sig=$(cat "$LINUX_UPDATER_SIG")")
+fi
+# Bundle rpm (endpoint NEW para clientes .rpm v0.0.14+)
+if [ -n "$LINUX_RPM" ] && [ -n "$LINUX_RPM_SIG" ]; then
+  ARGS+=("--linux-rpm-url=$R2_PUBLIC_BASE/v$VERSION/$(basename "$LINUX_RPM")")
+  ARGS+=("--linux-rpm-sig=$(cat "$LINUX_RPM_SIG")")
+fi
+
+# Windows: top-level → .nsis.zip (es lo que esperaban v0.0.13 clientes nsis-installed).
 if [ -n "$WIN_UPDATER_ZIP" ] && [ -n "$WIN_UPDATER_SIG" ]; then
   ARGS+=("--windows-url=$R2_PUBLIC_BASE/v$VERSION/$(basename "$WIN_UPDATER_ZIP")")
   ARGS+=("--windows-sig=$(cat "$WIN_UPDATER_SIG")")
+  # Bundle nsis (endpoint NEW)
+  ARGS+=("--windows-nsis-url=$R2_PUBLIC_BASE/v$VERSION/$(basename "$WIN_UPDATER_ZIP")")
+  ARGS+=("--windows-nsis-sig=$(cat "$WIN_UPDATER_SIG")")
 elif [ -n "$WIN_NSIS" ] && [ -n "$WIN_NSIS_SIG" ]; then
-  echo "  ⚠ Fallback Windows: usando raw .exe en manifest (clientes con plugin viejo verán 'invalid updater binary format')" >&2
+  echo "  ⚠ Fallback Windows: usando .exe raw como top-level (.nsis.zip no encontrado)" >&2
   ARGS+=("--windows-url=$R2_PUBLIC_BASE/v$VERSION/$(basename "$WIN_NSIS")")
   ARGS+=("--windows-sig=$(cat "$WIN_NSIS_SIG")")
 fi

@@ -427,7 +427,14 @@ async function handleDownload(req: Request, env: Env): Promise<Response> {
 
 /**
  * Endpoint updater Tauri.
- * GET /api/updater/{target}-{arch}/{current_version}[?channel=stable|beta]
+ * Soporta DOS formatos de path:
+ *   OLD (v0.0.13 y anteriores): /api/updater/{target}-{arch}/{current_version}
+ *   NEW (v0.0.14+):              /api/updater/{target}-{arch}/{bundle_type}/{current_version}
+ *
+ * El NEW format incluye {{bundle_type}} (deb, appimage, rpm, nsis, msi, app) — Tauri
+ * lo sustituye según cómo se instaló la app. Permite al backend devolver el bundle
+ * adecuado por tipo, evitando "invalid updater binary format" cuando p.ej. usuario .deb
+ * recibía un .AppImage.tar.gz.
  *
  * Devuelve:
  *   204 No Content → cliente está al día (no update)
@@ -439,14 +446,31 @@ async function handleDownload(req: Request, env: Env): Promise<Response> {
  */
 async function handleUpdater(req: Request, env: Env): Promise<Response> {
   const url = new URL(req.url);
-  // Path esperado: /api/updater/{target}-{arch}/{current_version}
-  // Ej: /api/updater/linux-x86_64/0.0.4
   const parts = url.pathname.split("/").filter(Boolean);
-  if (parts.length !== 4 || parts[0] !== "api" || parts[1] !== "updater") {
-    return badRequest("invalid updater path, expected /api/updater/{target-arch}/{current_version}");
+  if (parts[0] !== "api" || parts[1] !== "updater") {
+    return badRequest("invalid updater path");
   }
-  const platformKey = parts[2] ?? "";
-  const currentVersion = parts[3] ?? "";
+
+  let platformKey: string;
+  let currentVersion: string;
+  let bundleType: string | undefined;
+
+  if (parts.length === 4) {
+    // OLD: /api/updater/{platform}/{version}
+    platformKey = parts[2] ?? "";
+    currentVersion = parts[3] ?? "";
+  } else if (parts.length === 5) {
+    // NEW: /api/updater/{platform}/{bundle_type}/{version}
+    platformKey = parts[2] ?? "";
+    bundleType = parts[3] ?? "";
+    currentVersion = parts[4] ?? "";
+    // bundle_type podría llegar como "unknown" si el plugin no detecta — tratamos como sin bundle.
+    if (bundleType === "unknown" || bundleType === "") bundleType = undefined;
+  } else {
+    return badRequest(
+      "invalid updater path, expected /api/updater/{target-arch}/{current_version} or /api/updater/{target-arch}/{bundle_type}/{current_version}",
+    );
+  }
 
   if (!SUPPORTED_PLATFORMS.has(platformKey)) {
     return badRequest(`platform '${platformKey}' not supported`);
@@ -462,7 +486,7 @@ async function handleUpdater(req: Request, env: Env): Promise<Response> {
   }
 
   const manifest = await getManifest(env.MILORO_UPDATES, channel);
-  const update = resolveUpdate(manifest, currentVersion, platformKey);
+  const update = resolveUpdate(manifest, currentVersion, platformKey, bundleType);
 
   if (!update) {
     // No update → 204 No Content (lo que espera Tauri updater plugin)

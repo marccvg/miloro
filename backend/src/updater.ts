@@ -18,6 +18,13 @@
 export interface PlatformAsset {
   signature: string;
   url: string;
+  // NUEVO v0.0.14+: URLs específicas por bundle type (deb, appimage, rpm, nsis, msi, app).
+  // Cuando el cliente envía bundle_type en el endpoint, el backend devuelve el bundle adecuado.
+  // El plugin Tauri detecta cómo se instaló la app y pasa ese tipo en la URL:
+  //   /api/updater/linux-x86_64/deb/0.0.13  → backend devuelve bundles.deb (url + sig del .deb)
+  //   /api/updater/linux-x86_64/appimage/0.0.13 → backend devuelve bundles.appimage
+  // Si el cliente NO envía bundle_type (v0.0.13 y anteriores), backend cae a top-level url+sig.
+  bundles?: Record<string, { url: string; signature: string }>;
 }
 
 export interface UpdateManifest {
@@ -25,12 +32,6 @@ export interface UpdateManifest {
   pub_date: string;         // ISO 8601 UTC
   notes: string;            // release notes (markdown)
   platforms: Record<string, PlatformAsset>;
-  // ej. platforms: {
-  //   "linux-x86_64": { signature: "dW50cnVzd...", url: "https://github.com/.../release.AppImage.tar.gz" },
-  //   "windows-x86_64": { signature: "...", url: "..." },
-  //   "darwin-x86_64": { signature: "...", url: "..." },
-  //   "darwin-aarch64": { signature: "...", url: "..." }
-  // }
 }
 
 /**
@@ -91,11 +92,27 @@ export function resolveUpdate(
   manifest: UpdateManifest | null,
   currentVersion: string,
   platformKey: string,
+  bundleType?: string,  // v0.0.14+: si el cliente envía bundle_type, priorizamos bundles[bundle_type]
 ): { version: string; pub_date: string; notes: string; url: string; signature: string } | null {
   if (!manifest) return null;
   if (compareSemver(manifest.version, currentVersion) <= 0) return null; // cliente al día
   const asset = manifest.platforms[platformKey];
   if (!asset) return null; // platform no soportada en este manifest
+
+  // v0.0.14+: si el cliente envía bundle_type Y el manifest tiene la entrada → usarla.
+  // Si no, fallback al top-level url+sig (que debe ser el bundle "razonable por defecto"
+  // — para Linux es .deb porque es el formato del instalador principal de miloro.app).
+  if (bundleType && asset.bundles && asset.bundles[bundleType]) {
+    const b = asset.bundles[bundleType];
+    return {
+      version: manifest.version,
+      pub_date: manifest.pub_date,
+      notes: manifest.notes,
+      url: b.url,
+      signature: b.signature,
+    };
+  }
+
   return {
     version: manifest.version,
     pub_date: manifest.pub_date,

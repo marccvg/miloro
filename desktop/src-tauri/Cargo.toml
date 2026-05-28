@@ -1,6 +1,6 @@
 [package]
 name = "miloro-desktop"
-version = "0.0.13"
+version = "0.0.14"
 description = "MiLoro — desktop transcripción local con Whisper"
 authors = ["MiLoro"]
 edition = "2021"
@@ -20,6 +20,9 @@ tauri-plugin-clipboard-manager = "2.0"
 tauri-plugin-updater = "2.0"
 # Autostart: arrancar MiLoro al iniciar sesión SO (Linux: ~/.config/autostart/; Win: registro; Mac: LaunchAgent).
 tauri-plugin-autostart = "2.0"
+# Single-instance: una segunda invocación NO arranca nueva instancia, enfoca la primera.
+# Resuelve el bug "2 loros en tray" que aparecía al re-lanzar la app o tras dpkg -i sobre app corriendo.
+tauri-plugin-single-instance = "2.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # PTT global linux: lectura /dev/input/event* (requiere user en grupo `input`)

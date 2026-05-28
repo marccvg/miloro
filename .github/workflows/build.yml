@@ -106,6 +106,29 @@ jobs:
         # Linux/Win sin args, build nativo.
         run: npx tauri build ${{ matrix.tauri_args }}
 
+      # --- Firma .deb + .rpm post-build (Tauri 2 NO los firma nativo) ---
+      # Necesario para que tauri-plugin-updater pueda verificar la firma de un .deb
+      # entregado al cliente instalado vía dpkg. Sin esto, /api/updater devuelve URL
+      # pero el plugin rechaza con "invalid updater binary format" porque o no hay
+      # sig (firmar fallback al .AppImage que no es lo que el cliente espera).
+      - name: Sign Linux .deb + .rpm post-build
+        if: matrix.platform == 'ubuntu-22.04'
+        working-directory: desktop
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          set -e
+          for f in src-tauri/target/release/bundle/deb/*.deb src-tauri/target/release/bundle/rpm/*.rpm; do
+            [ -f "$f" ] || continue
+            echo "Signing $f"
+            npx @tauri-apps/cli signer sign \
+              --private-key "$TAURI_SIGNING_PRIVATE_KEY" \
+              --password "${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:-}" \
+              "$f"
+          done
+          ls -la src-tauri/target/release/bundle/deb/ src-tauri/target/release/bundle/rpm/
+
       # --- Upload artefactos por OS para descarga en GitHub release ---
       - name: Upload Linux artifacts
         if: matrix.platform == 'ubuntu-22.04'
@@ -118,7 +141,9 @@ jobs:
             desktop/src-tauri/target/release/bundle/appimage/*.AppImage.tar.gz
             desktop/src-tauri/target/release/bundle/appimage/*.AppImage.tar.gz.sig
             desktop/src-tauri/target/release/bundle/deb/*.deb
+            desktop/src-tauri/target/release/bundle/deb/*.deb.sig
             desktop/src-tauri/target/release/bundle/rpm/*.rpm
+            desktop/src-tauri/target/release/bundle/rpm/*.rpm.sig
           if-no-files-found: error
 
       - name: Upload Windows artifacts

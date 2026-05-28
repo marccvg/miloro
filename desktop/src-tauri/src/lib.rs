@@ -614,6 +614,16 @@ pub fn run() {
     ));
 
     tauri::Builder::default()
+        // single_instance DEBE registrarse antes que el resto — si ya hay una instancia
+        // corriendo, este callback se invoca en la primera con args+cwd de la segunda y
+        // la segunda invocación termina silenciosamente (sin nuevo proceso ni segundo tray).
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.unminimize();
+                let _ = window.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(
