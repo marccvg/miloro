@@ -78,6 +78,10 @@ find_asset() {
 
 LINUX_APPIMAGE=$(find_asset "MiLoro_${VERSION}_amd64.AppImage")
 LINUX_SIG=$(find_asset "MiLoro_${VERSION}_amd64.AppImage.sig")
+# .deb es el formato default para /api/download/linux (compatible con drivers Wayland modernos
+# donde el AppImage ha tenido crashes amarillos WebKit). El AppImage queda disponible vía
+# /api/download/linux?format=appimage para developers.
+LINUX_DEB=$(find_asset "MiLoro_${VERSION}_amd64.deb")
 
 WIN_NSIS=$(find_asset "MiLoro_${VERSION}_x64-setup.exe")
 WIN_NSIS_SIG=$(find_asset "MiLoro_${VERSION}_x64-setup.exe.sig")
@@ -115,6 +119,7 @@ fi
 echo ""
 echo "Assets detectados:"
 [ -n "$LINUX_APPIMAGE" ]  && echo "  ✓ Linux x86_64:   $(basename "$LINUX_APPIMAGE")" || echo "  ✗ Linux x86_64:   NO encontrado"
+[ -n "$LINUX_DEB" ]       && echo "  ✓ Linux .deb:     $(basename "$LINUX_DEB")"      || echo "  ✗ Linux .deb:     NO encontrado"
 [ -n "$WIN_NSIS" ]        && echo "  ✓ Windows x86_64: $(basename "$WIN_NSIS")"       || echo "  ✗ Windows x86_64: NO encontrado"
 [ -n "$MAC_X86_TARGZ" ]   && echo "  ✓ macOS x86_64:   $(basename "$MAC_X86_TARGZ")"  || echo "  ✗ macOS x86_64:   NO encontrado"
 [ -n "$MAC_ARM_TARGZ" ]   && echo "  ✓ macOS aarch64:  $(basename "$MAC_ARM_TARGZ")"  || echo "  ✗ macOS aarch64:  NO encontrado"
@@ -138,6 +143,7 @@ upload() {
 
 upload "$LINUX_APPIMAGE"  "v$VERSION/$(basename "$LINUX_APPIMAGE")"
 upload "$LINUX_SIG"       "v$VERSION/$(basename "$LINUX_SIG")"
+upload "$LINUX_DEB"       "v$VERSION/$(basename "$LINUX_DEB")"
 upload "$WIN_NSIS"        "v$VERSION/$(basename "$WIN_NSIS")"
 upload "$WIN_NSIS_SIG"    "v$VERSION/$(basename "$WIN_NSIS_SIG")"
 upload "$MAC_X86_TARGZ"   "v$VERSION/$(basename "$MAC_X86_TARGZ")"

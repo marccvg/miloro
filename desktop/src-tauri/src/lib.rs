@@ -6,7 +6,7 @@ use std::process::{Child, Command, Stdio};
 use std::sync::Arc;
 use parking_lot::Mutex;
 use tauri::{
-    command, AppHandle, Manager, State, WindowEvent,
+    command, AppHandle, Emitter, Manager, State, WindowEvent,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
 };
@@ -319,6 +319,7 @@ async fn transcribe_local(
     audio_path: String,
     model: Option<String>,
     language: Option<String>,
+    app: AppHandle,
 ) -> Result<String, String> {
     if !std::path::Path::new(&audio_path).exists() {
         return Err(format!("audio no existe: {audio_path}"));
@@ -330,8 +331,18 @@ async fn transcribe_local(
     let audio_path_clone = audio_path.clone();
     let model_size_owned = model_size.to_string();
     let language_owned = language.clone();
+    let app_clone = app.clone();
     let result = tokio::task::spawn_blocking(move || {
+        // Avisar al frontend si vamos a descargar (primera vez o fichero corrupto).
+        // Sin esto, el primer PTT parece app congelada durante varios minutos.
+        let needs_download = !model_manager::is_model_ready(&model_size_owned);
+        if needs_download {
+            let _ = app_clone.emit("model_download_started", &model_size_owned);
+        }
         let model_path = model_manager::ensure_model(&model_size_owned)?;
+        if needs_download {
+            let _ = app_clone.emit("model_download_finished", &model_size_owned);
+        }
         let model_path_str = model_path.to_string_lossy().to_string();
         whisper::transcribe_file(&model_path_str, &audio_path_clone, language_owned.as_deref())
     })

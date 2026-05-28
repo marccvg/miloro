@@ -341,9 +341,12 @@ async function handleDashboard(req: Request, env: Env): Promise<Response> {
 
 /**
  * Endpoint público de descarga: redirige al binario latest según platform.
- * GET /api/download/{platform}  (linux | windows | macos | macos-arm)
+ * GET /api/download/{platform}[?format=appimage]
+ *   platform: linux | windows | macos | macos-arm
  *
  * Lee el manifest stable del KV MILORO_UPDATES y hace 302 a la URL del platform.
+ * Para Linux, por defecto sirve .deb (compatible con drivers Wayland modernos donde
+ * el AppImage ha tenido crashes WebKit amarillos). AppImage opt-in vía ?format=appimage.
  * Si no hay manifest o platform no soportado → 404.
  */
 async function handleDownload(req: Request, env: Env): Promise<Response> {
@@ -371,9 +374,23 @@ async function handleDownload(req: Request, env: Env): Promise<Response> {
   if (!asset) {
     return notFound(`platform '${platformArg}' not available in latest release v${manifest.version}`);
   }
+
+  let targetUrl = asset.url;
+
+  // Linux default → .deb. El manifest siempre apunta al AppImage (lo usa el updater
+  // Tauri y exige ese formato firmado). Derivamos la URL del .deb del mismo prefijo R2.
+  // Si el manifest no encaja con el patrón esperado (release antiguo, otro empaquetado),
+  // degradamos a AppImage en vez de 404.
+  if (platformArg === "linux" && url.searchParams.get("format") !== "appimage") {
+    const debUrl = asset.url.replace(/_amd64\.AppImage$/, "_amd64.deb");
+    if (debUrl !== asset.url) {
+      targetUrl = debUrl;
+    }
+  }
+
   return new Response(null, {
     status: 302,
-    headers: { Location: asset.url, "cache-control": "no-cache" },
+    headers: { Location: targetUrl, "cache-control": "no-cache" },
   });
 }
 

@@ -71,6 +71,11 @@
   let toastVisible = $state(false);
   let toastOk = $state(true);
   let toastText = $state("");
+  // Banner persistente durante descarga del modelo Whisper (primera vez o tras corrupto).
+  // Sin esto, el primer PTT parece app congelada durante varios minutos → user cierra → modelo
+  // queda corrupto → siguiente PTT da error críptico. Bug #1+#3 v0.0.12.
+  let modelDownloading = $state(false);
+  let modelDownloadText = $state("");
 
   // Whisper CPU int8 — coef tiempo-transcripción / tiempo-audio por modelo
   const MODEL_SPEED_RATIO: Record<string, number> = {
@@ -383,6 +388,22 @@
     // Suscribirse a los eventos del listener evdev del backend
     unlistenPress = await listen("ptt-press", () => { void onPttPress(); });
     unlistenRelease = await listen("ptt-release", () => { void onPttRelease(); });
+    // Eventos descarga modelo Whisper: primera vez (o tras corrupto) puede tardar varios minutos.
+    // Avisamos en banner persistente para que el user no piense que la app se congeló.
+    await listen<string>("model_download_started", (event) => {
+      const size = event.payload ?? "small";
+      const sizes: Record<string, string> = {
+        tiny: "75 MB", base: "142 MB", small: "466 MB",
+        medium: "1.5 GB", "large-v3": "2.9 GB",
+      };
+      const sizeStr = sizes[size] ?? "";
+      modelDownloadText = `📥 Descargando modelo Whisper ${size}${sizeStr ? ` (${sizeStr})` : ""} — primera vez, puede tardar varios minutos…`;
+      modelDownloading = true;
+    });
+    await listen<string>("model_download_finished", () => {
+      modelDownloading = false;
+      showToast("✅ Modelo descargado. Transcribiendo…", true);
+    });
     // Armar la tecla configurada (por si cambió desde última sesión)
     try {
       await invoke("update_ptt_key", { keyName: settings.pttKey });
@@ -845,6 +866,10 @@
 
       {#if toastVisible}
         <div class="toast" class:err={!toastOk}>{toastText}</div>
+      {/if}
+
+      {#if modelDownloading}
+        <div class="download-banner" role="status" aria-live="polite">{modelDownloadText}</div>
       {/if}
   </div>
 
@@ -1434,6 +1459,25 @@
     to   { opacity: 1; transform: translate(-50%, 0); }
   }
   .toast.err { background: #FEE2E2; color: #991B1B; border-color: #EF4444; }
+
+  .download-banner {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.65rem 1.1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    text-align: center;
+    background: #FEF3C7;
+    color: #92400E;
+    max-width: 600px;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(217,119,6,0.25);
+    border: 2px solid #F59E0B;
+    font-weight: 600;
+    animation: toast-slide-in 0.2s ease-out;
+  }
 
   .autosave-hint {
     text-align: center;

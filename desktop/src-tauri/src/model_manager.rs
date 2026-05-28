@@ -12,10 +12,10 @@
 /// Layout: `~/.local/share/miloro/models/ggml-{size}.bin`
 
 use std::fs::{self, File};
-use std::io::Write;
-use std::path::PathBuf;
+use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
 use std::time::Duration;
-// sha2 imports removed — checksum estricto pendiente para futuro. Tamaño aprox + TLS HF suficiente para MVP.
+// sha2 imports removed — checksum estricto pendiente para futuro. Tamaño aprox + magic bytes + TLS HF suficiente para MVP.
 
 const HF_BASE: &str = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main";
 
@@ -61,7 +61,33 @@ fn is_valid_size(size: &str) -> bool {
     matches!(size, "tiny" | "base" | "small" | "medium" | "large-v3")
 }
 
-/// Comprueba si el modelo ya está descargado + tiene tamaño plausible.
+/// Valida que un fichero local de modelo NO esté corrupto.
+/// Combina dos checks baratos: tamaño dentro de ±5% del esperado + magic bytes ggml.
+/// Detecta: descargas truncadas (proceso matado, app cerrada), respuestas HTML de error
+/// servidas como 200 (proxy/captive portal), redirects no seguidos, ficheros vacíos.
+fn validate_model_file(path: &Path, size: &str) -> bool {
+    let Some(expected) = expected_size_bytes(size) else {
+        return path.exists();
+    };
+    let Ok(meta) = fs::metadata(path) else { return false };
+    let actual = meta.len();
+    let lower = expected * 95 / 100;
+    let upper = expected * 105 / 100;
+    if actual < lower || actual > upper {
+        return false;
+    }
+    // Magic bytes: whisper.cpp GGML format empieza con b"ggml" (0x67676d6c).
+    // Comprobamos prefijo b"gg" para cubrir variantes futuras (ggmf, ggjt, gguf)
+    // sin que un cambio de magic upstream rompa la app — un fichero corrupto/HTML
+    // no empieza por "gg".
+    let Ok(mut f) = File::open(path) else { return false };
+    let mut magic = [0u8; 4];
+    if f.read(&mut magic).unwrap_or(0) < 4 { return false; }
+    magic[0] == b'g' && magic[1] == b'g'
+}
+
+/// Comprueba si el modelo ya está descargado + pasa validación (tamaño + magic).
+/// Si devuelve false: ensure_model lo redescargará automáticamente.
 pub fn is_model_ready(size: &str) -> bool {
     let path = match model_path(size) {
         Ok(p) => p,
@@ -70,22 +96,17 @@ pub fn is_model_ready(size: &str) -> bool {
     if !path.exists() {
         return false;
     }
-    // Sanity check: el archivo debe estar dentro de ±10% del tamaño esperado.
-    if let Some(expected) = expected_size_bytes(size) {
-        if let Ok(meta) = fs::metadata(&path) {
-            let actual = meta.len();
-            let lower = expected * 9 / 10;
-            let upper = expected * 11 / 10;
-            return actual >= lower && actual <= upper;
-        }
-    }
-    // Si no tenemos expected, basta con que exista
-    path.exists()
+    validate_model_file(&path, size)
 }
 
 /// Descarga el modelo desde HuggingFace si no está ya en cache.
 /// Bloqueante (NO async). Llamar desde tokio::task::spawn_blocking o thread aparte.
 /// Returns el path local del modelo descargado.
+///
+/// Si existe un fichero pre-existente que NO pasa validación (truncado, HTML, magic
+/// incorrecto) lo borra y redescarga una vez. Esto cubre el caso #1 de UX: usuario
+/// cierra la app durante la primera descarga → siguiente PTT encuentra fichero
+/// corrupto → whisper.cpp falla con "Failed to create whisper context".
 pub fn ensure_model(size: &str) -> Result<PathBuf, String> {
     let path = model_path(size)?;
 
@@ -93,13 +114,28 @@ pub fn ensure_model(size: &str) -> Result<PathBuf, String> {
         return Ok(path);
     }
 
-    let url = format!("{HF_BASE}/ggml-{size}.bin");
-    println!("[model_manager] descargando {url} -> {}", path.display());
-
-    // Si existe parcial, borrar y volver a descargar (no soportamos resume para MVP)
+    // Fichero existe pero is_model_ready=false → corrupto. Borrar antes de redescargar.
     if path.exists() {
+        eprintln!("[model_manager] fichero corrupto en {}, borrando + redescargando", path.display());
         let _ = fs::remove_file(&path);
     }
+
+    download_model(size, &path)?;
+
+    // Validar post-descarga (no confiar solo en tamaño del stream — verificar también magic)
+    if !validate_model_file(&path, size) {
+        let _ = fs::remove_file(&path);
+        return Err(format!(
+            "modelo descargado no pasa validación (tamaño/magic) — fichero descartado, reintenta"
+        ));
+    }
+
+    Ok(path)
+}
+
+fn download_model(size: &str, path: &Path) -> Result<(), String> {
+    let url = format!("{HF_BASE}/ggml-{size}.bin");
+    println!("[model_manager] descargando {url} -> {}", path.display());
 
     let agent = ureq::AgentBuilder::new()
         .timeout(Duration::from_secs(60 * 30))  // 30 min max para large
@@ -114,7 +150,7 @@ pub fn ensure_model(size: &str) -> Result<PathBuf, String> {
 
     // Stream a archivo (no cargamos los 1-3GB en RAM)
     let mut reader = resp.into_reader();
-    let mut file = File::create(&path)
+    let mut file = File::create(path)
         .map_err(|e| format!("crear archivo {}: {e}", path.display()))?;
 
     let mut buf = vec![0u8; 65536];
@@ -128,20 +164,8 @@ pub fn ensure_model(size: &str) -> Result<PathBuf, String> {
     file.flush().map_err(|e| format!("flush: {e}"))?;
     drop(file);
 
-    // Verificación tamaño (descarte rápido archivos corruptos)
-    if let Some(expected) = expected_size_bytes(size) {
-        let lower = expected * 9 / 10;
-        let upper = expected * 11 / 10;
-        if total < lower || total > upper {
-            let _ = fs::remove_file(&path);
-            return Err(format!(
-                "tamaño descargado {total} fuera de rango esperado [{lower}, {upper}] — descarte archivo"
-            ));
-        }
-    }
-
     println!("[model_manager] OK {} bytes -> {}", total, path.display());
-    Ok(path)
+    Ok(())
 }
 
 /// Estimado uso disco (bytes) por tamaño de modelo. Para UI install wizard.
