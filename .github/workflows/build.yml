@@ -115,6 +115,8 @@ jobs:
           path: |
             desktop/src-tauri/target/release/bundle/appimage/*.AppImage
             desktop/src-tauri/target/release/bundle/appimage/*.AppImage.sig
+            desktop/src-tauri/target/release/bundle/appimage/*.AppImage.tar.gz
+            desktop/src-tauri/target/release/bundle/appimage/*.AppImage.tar.gz.sig
             desktop/src-tauri/target/release/bundle/deb/*.deb
             desktop/src-tauri/target/release/bundle/rpm/*.rpm
           if-no-files-found: error
@@ -127,8 +129,12 @@ jobs:
           path: |
             desktop/src-tauri/target/release/bundle/msi/*.msi
             desktop/src-tauri/target/release/bundle/msi/*.msi.sig
+            desktop/src-tauri/target/release/bundle/msi/*.msi.zip
+            desktop/src-tauri/target/release/bundle/msi/*.msi.zip.sig
             desktop/src-tauri/target/release/bundle/nsis/*.exe
             desktop/src-tauri/target/release/bundle/nsis/*.exe.sig
+            desktop/src-tauri/target/release/bundle/nsis/*.nsis.zip
+            desktop/src-tauri/target/release/bundle/nsis/*.nsis.zip.sig
           if-no-files-found: warn
 
       # macOS universal: path bundle vive bajo target/universal-apple-darwin/, no target/

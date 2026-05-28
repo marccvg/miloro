@@ -375,20 +375,30 @@ async function handleDownload(req: Request, env: Env): Promise<Response> {
     return notFound(`platform '${platformArg}' not available in latest release v${manifest.version}`);
   }
 
-  // Derivamos la R2 key desde asset.url (pub-XXX.r2.dev/<key>). El manifest siempre
-  // apunta al AppImage por compatibilidad con el updater Tauri (formato firmado obligatorio).
-  let assetKey: string;
-  try {
-    assetKey = new URL(asset.url).pathname.replace(/^\//, "");
-  } catch {
-    return notFound("manifest asset.url is not a valid URL");
+  // Construimos la R2 key directamente por versión + platform + formato (NO derivamos
+  // del asset.url del manifest, porque ese ahora apunta al wrapper updater .tar.gz/.zip
+  // que el plugin Tauri necesita; pero los users hacen click en "Descargar alpha" y
+  // esperan el raw .deb/.exe/.app.tar.gz que pueden abrir directo).
+  const version = manifest.version;
+  const format = url.searchParams.get("format");
+  let filename: string;
+  switch (platformArg) {
+    case "linux":
+      filename = format === "appimage"
+        ? `MiLoro_${version}_amd64.AppImage`
+        : `MiLoro_${version}_amd64.deb`;
+      break;
+    case "windows":
+      filename = `MiLoro_${version}_x64-setup.exe`;
+      break;
+    case "macos":
+    case "macos-arm":
+      filename = "MiLoro.app.tar.gz";
+      break;
+    default:
+      return notFound(`download for platform '${platformArg}' not implemented`);
   }
-
-  // Linux default → .deb (AppImage opt-in con ?format=appimage).
-  if (platformArg === "linux" && url.searchParams.get("format") !== "appimage") {
-    const debKey = assetKey.replace(/_amd64\.AppImage$/, "_amd64.deb");
-    if (debKey !== assetKey) assetKey = debKey;
-  }
+  const assetKey = `v${version}/${filename}`;
 
   // Si R2 está bindeado, proxy stream con Content-Disposition: attachment.
   // Esto fuerza al navegador a descargar (no "abrir con…"); evita que GNOME muestre
@@ -406,7 +416,7 @@ async function handleDownload(req: Request, env: Env): Promise<Response> {
   }
 
   // Fallback (binding R2 no configurado): 302 a la URL pública del bucket.
-  // Reconstruye con assetKey (que puede haber cambiado a .deb arriba).
+  // Toma el host de asset.url y reescribe el path al assetKey calculado arriba.
   const fallbackUrl = new URL(asset.url);
   fallbackUrl.pathname = "/" + assetKey;
   return new Response(null, {

@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "MiLoro",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "identifier": "app.miloro",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -38,7 +38,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": "v1Compatible",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
