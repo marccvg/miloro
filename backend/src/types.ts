@@ -19,6 +19,10 @@ export interface Env {
   EMAIL_FROM?: string;
   // Updater Tauri (opcional — si no bindeado, /api/updater devuelve 204 always)
   MILORO_UPDATES?: KVNamespace;
+  // R2 bucket releases (opcional — si bindeado, /api/download/* proxy stream con
+  // Content-Disposition: attachment para forzar descarga en vez de "abrir con…"
+  // en GNOME/Archive Manager).
+  MILORO_RELEASES?: R2Bucket;
 }
 
 export type Plan = "free" | "standard" | "pro";

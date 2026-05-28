@@ -375,22 +375,43 @@ async function handleDownload(req: Request, env: Env): Promise<Response> {
     return notFound(`platform '${platformArg}' not available in latest release v${manifest.version}`);
   }
 
-  let targetUrl = asset.url;
-
-  // Linux default → .deb. El manifest siempre apunta al AppImage (lo usa el updater
-  // Tauri y exige ese formato firmado). Derivamos la URL del .deb del mismo prefijo R2.
-  // Si el manifest no encaja con el patrón esperado (release antiguo, otro empaquetado),
-  // degradamos a AppImage en vez de 404.
-  if (platformArg === "linux" && url.searchParams.get("format") !== "appimage") {
-    const debUrl = asset.url.replace(/_amd64\.AppImage$/, "_amd64.deb");
-    if (debUrl !== asset.url) {
-      targetUrl = debUrl;
-    }
+  // Derivamos la R2 key desde asset.url (pub-XXX.r2.dev/<key>). El manifest siempre
+  // apunta al AppImage por compatibilidad con el updater Tauri (formato firmado obligatorio).
+  let assetKey: string;
+  try {
+    assetKey = new URL(asset.url).pathname.replace(/^\//, "");
+  } catch {
+    return notFound("manifest asset.url is not a valid URL");
   }
 
+  // Linux default → .deb (AppImage opt-in con ?format=appimage).
+  if (platformArg === "linux" && url.searchParams.get("format") !== "appimage") {
+    const debKey = assetKey.replace(/_amd64\.AppImage$/, "_amd64.deb");
+    if (debKey !== assetKey) assetKey = debKey;
+  }
+
+  // Si R2 está bindeado, proxy stream con Content-Disposition: attachment.
+  // Esto fuerza al navegador a descargar (no "abrir con…"); evita que GNOME muestre
+  // las "muchas carpetas" del .deb interno (control.tar + data.tar) en Archive Manager.
+  if (env.MILORO_RELEASES) {
+    const obj = await env.MILORO_RELEASES.get(assetKey);
+    if (!obj) return notFound(`asset not in R2: ${assetKey}`);
+    const filename = assetKey.split("/").pop() ?? "miloro-download";
+    const headers = new Headers();
+    headers.set("Content-Type", "application/octet-stream");
+    headers.set("Content-Disposition", `attachment; filename="${filename}"`);
+    headers.set("Content-Length", String(obj.size));
+    headers.set("cache-control", "public, max-age=300");
+    return new Response(obj.body, { status: 200, headers });
+  }
+
+  // Fallback (binding R2 no configurado): 302 a la URL pública del bucket.
+  // Reconstruye con assetKey (que puede haber cambiado a .deb arriba).
+  const fallbackUrl = new URL(asset.url);
+  fallbackUrl.pathname = "/" + assetKey;
   return new Response(null, {
     status: 302,
-    headers: { Location: targetUrl, "cache-control": "no-cache" },
+    headers: { Location: fallbackUrl.toString(), "cache-control": "no-cache" },
   });
 }
 

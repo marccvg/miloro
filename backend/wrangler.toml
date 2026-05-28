@@ -34,6 +34,14 @@ migrations_dir = "migrations"
 binding = "MILORO_UPDATES"
 id = "0d7c44752876408e9bdd9643eddd27ff"
 
+# === R2 bucket releases (para /api/download/* proxy stream) ===
+# Bucket existente (gh_to_r2.sh sube ahí); el Worker lo lee para añadir
+# Content-Disposition: attachment al servir — necesario para que GNOME/Archive
+# Manager no abra el .deb como contenedor mostrando "muchas carpetas".
+[[r2_buckets]]
+binding = "MILORO_RELEASES"
+bucket_name = "miloro-releases"
+
 # === Vars públicas (no secretas) ===
 [vars]
 ENVIRONMENT = "production"
